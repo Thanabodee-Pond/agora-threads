@@ -1,66 +1,69 @@
-// File: client/src/components/PostCard.tsx
-'use client';
-
-import { MessageCircle } from 'lucide-react';
+// client/components/PostCard.tsx
 import Link from 'next/link';
-
-// --- ส่วนที่แก้ไข: เปลี่ยน Path การ Import ---
-import { Badge } from '@/components/ui/badge';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-// -----------------------------------------
-
-// กำหนด Type ของ Post ให้ตรงกับข้อมูลที่มาจาก Backend
-interface Post {
-  id: number;
-  title: string;
-  content: string;
-  author: {
-    username: string;
-  };
-  createdAt: string;
-  comments: unknown[]; // เราแค่ต้องการ .length จึงใช้ unknown[] ได้
-}
+import { MessageCircle, Bookmark } from 'lucide-react';
 
 interface PostCardProps {
-  post: Post;
+  post: {
+    id: string;
+    title: string;
+    content: string;
+    author: {
+      username: string;
+      avatarUrl?: string;
+    };
+    category: string;
+    createdAt: string;
+    commentCount: number;
+  };
 }
 
 export default function PostCard({ post }: PostCardProps) {
+  const formatDate = (dateString: string) => {
+    const options: Intl.DateTimeFormatOptions = { year: 'numeric', month: 'long', day: 'numeric' };
+    return new Date(dateString).toLocaleDateString('en-US', options);
+  };
+
   return (
-    <Card className="w-full max-w-2xl mx-auto shadow-md hover:shadow-lg transition-shadow flex flex-col">
-      <Link
-        href={`/posts/${post.id}`}
-        className="block hover:bg-gray-50/50 rounded-t-lg flex-grow"
-      >
-        <CardHeader>
-          <div className="flex items-center gap-3 mb-2">
-            <Avatar>
-              <AvatarFallback>{post.author.username.charAt(0).toUpperCase()}</AvatarFallback>
-            </Avatar>
-            <div>
-              <p className="font-semibold">{post.author.username}</p>
-              <p className="text-xs text-gray-500">
-                Posted on {new Date(post.createdAt).toLocaleDateString()}
-              </p>
-            </div>
+    // *** สำคัญ: ไม่มี rounded-lg ที่นี่ ***
+    // ไม่มี border-b หรือ shadow-sm ด้วย
+    <div className="bg-custom-white overflow-hidden">
+      <Link href={`/posts/${post.id}`} className="block p-6">
+        <div className="flex items-center mb-3 rounded-b-none">
+          <img
+            src={post.author.avatarUrl || '/pond_avatar.png'}
+            alt={post.author.username}
+            className="w-10 h-10 rounded-full object-cover mr-3 border border-custom-grey-100"
+          />
+          <div className="flex flex-col">
+            <span className="font-semibold text-custom-text text-lg font-sans">
+              {post.author.username}
+            </span>
+            {/* แสดง Category ตรงนี้ */}
+            <span className="text-custom-grey-300 text-sm font-sans mb-1">
+              {post.category}
+            </span>
           </div>
-          <CardTitle className="text-xl font-semibold pt-2 text-gray-800">
-            {post.title}
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p className="text-gray-700 line-clamp-3">{post.content}</p>
-        </CardContent>
-      </Link>
-      
-      <CardFooter className="flex justify-between border-t pt-4 mt-auto">
-        <Badge variant="secondary">Community</Badge>
-        <div className="flex items-center gap-2 text-sm text-gray-500">
-          <MessageCircle className="h-4 w-4" />
-          <span>{post.comments.length} Comments</span>
         </div>
-      </CardFooter>
-    </Card>
+
+        <h2 className="text-2xl font-bold text-custom-text mb-2 font-sans leading-tight">
+          {post.title}
+        </h2>
+
+        <p className="text-custom-text text-base mb-4 font-sans line-clamp-3">
+          {post.content}
+        </p>
+
+        <div className="flex justify-between items-center text-custom-grey-300 text-sm font-sans">
+          <div className="flex items-center space-x-4">
+            <span className="flex items-center">
+              <MessageCircle className="w-4 h-4 mr-1" />
+              {post.commentCount} Comments
+            </span>
+            <span>{formatDate(post.createdAt)}</span>
+          </div>
+          <Bookmark className="w-5 h-5 cursor-pointer hover:text-custom-golden transition-colors" />
+        </div>
+      </Link>
+    </div>
   );
 }

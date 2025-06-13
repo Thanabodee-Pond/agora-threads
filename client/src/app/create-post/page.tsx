@@ -1,101 +1,112 @@
-// File: client/src/app/create-post/page.tsx
+// client/app/create-post/page.tsx
 'use client';
-import { useState } from 'react';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
-import axios from 'axios';
-import { useRouter } from 'next/navigation';
-import { useSession } from 'next-auth/react';
+import Header from '@/components/Header';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Label } from '@/components/ui/label';
-import { Loader2 } from 'lucide-react';
-
-const createPost = async ({ title, content, token }: { title: string; content: string; token: string }) => {
-  const { data } = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/posts`, { title, content }, {
-    headers: { Authorization: `Bearer ${token}` },
-  });
-  return data;
-};
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { toast } from 'sonner';
+import { useAuth, axiosInstance } from '@/components/AuthProvider'; // นำเข้า axiosInstance
 
 export default function CreatePostPage() {
   const router = useRouter();
-  const { data: session, status } = useSession();
-  const queryClient = useQueryClient();
+  const { isLoggedIn, accessToken } = useAuth();
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
+  const [category, setCategory] = useState('');
 
-  const mutation = useMutation({
-    mutationFn: createPost,
-    onSuccess: (data) => {
-      // เมื่อสร้างโพสต์สำเร็จ ให้ล้าง cache ของหน้าแรกเพื่อให้ข้อมูลอัปเดต
-      queryClient.invalidateQueries({ queryKey: ['posts'] });
-      // จากนั้นไปที่หน้ารายละเอียดของโพสต์นั้น
-      router.push(`/posts/${data.id}`);
-    },
-    onError: (error) => {
-      console.error("Error creating post:", error);
-      alert("Failed to create post.");
-    }
-  });
+  if (!isLoggedIn) {
+    return (
+      <div className="min-h-screen bg-custom-grey-100 flex flex-col items-center justify-center p-4">
+        <p className="text-custom-text text-lg text-center mb-4">Please sign in to create a post.</p>
+        <Button onClick={() => router.push('/sign-in')} className="bg-custom-green-300 text-custom-white px-6 py-3 rounded-md hover:opacity-90 font-sans text-base">
+          Go to Sign In
+        </Button>
+      </div>
+    );
+  }
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (session?.accessToken) {
-      mutation.mutate({ title, content, token: session.accessToken as string });
+    if (!title.trim() || !content.trim() || !category.trim()) {
+      toast.error("All fields (Title, Category, Content) are required.");
+      return;
+    }
+
+    try {
+      // ส่ง request สร้างโพสต์ใหม่
+      const response = await axiosInstance.post('/posts', {
+        title,
+        content,
+        category,
+      }, {
+        headers: { Authorization: `Bearer ${accessToken}` }, // ส่ง accessToken ไปด้วย
+      });
+      toast.success("Post created successfully!", {
+        className: "bg-custom-success text-custom-white",
+      });
+      router.push(`/posts/${response.data.id}`); // ไปยังหน้า Post Detail ของโพสต์ที่สร้างใหม่
+    } catch (err: any) {
+      toast.error(`Failed to create post: ${err.response?.data?.message || err.message}`);
     }
   };
 
-  if (status === 'loading') {
-    return <div className="flex justify-center items-center h-screen"><Loader2 className="h-8 w-8 animate-spin" /></div>;
-  }
-
-  // ถ้ายังไม่ล็อกอิน ให้ redirect ไปหน้า sign-in
-  if (status === 'unauthenticated') {
-    router.push('/sign-in');
-    return null; // ไม่ต้อง render อะไรระหว่างรอ redirect
-  }
+  const handleCancel = () => {
+    router.back();
+  };
 
   return (
-    <div className="container mx-auto max-w-2xl p-4 md:p-8">
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-3xl font-bold">Create a New Post</CardTitle>
-          <CardDescription>Share your thoughts with the community.</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-6">
-            <div className="space-y-2">
-              <Label htmlFor="title">Title</Label>
+    <div className="min-h-screen bg-custom-grey-100">
+      <Header />
+      <main className="container mx-auto p-4 md:p-8">
+        <div className="max-w-2xl mx-auto bg-custom-white border border-custom-grey-100 rounded-lg shadow-sm p-6 my-8">
+          <h2 className="text-2xl font-bold font-sans text-custom-text mb-6">Create New Post</h2>
+          <form onSubmit={handleSubmit}>
+            <div className="mb-4">
+              <label htmlFor="title" className="block text-custom-text font-semibold font-sans mb-2">Title</label>
               <Input
                 id="title"
+                type="text"
+                placeholder="Enter post title"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
-                placeholder="Your post title"
-                required
+                className="w-full border border-custom-grey-100 text-custom-text placeholder-custom-grey-300 focus:ring-custom-green-300 focus:border-custom-green-300 rounded-md p-2 font-sans"
               />
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="content">Content</Label>
+            <div className="mb-4">
+              <label htmlFor="category" className="block text-custom-text font-semibold font-sans mb-2">Category</label>
+              <Input
+                id="category"
+                type="text"
+                placeholder="e.g., History, Pets, Exercise"
+                value={category}
+                onChange={(e) => setCategory(e.target.value)}
+                className="w-full border border-custom-grey-100 text-custom-text placeholder-custom-grey-300 focus:ring-custom-green-300 focus:border-custom-green-300 rounded-md p-2 font-sans"
+              />
+            </div>
+            <div className="mb-4">
+              <label htmlFor="content" className="block text-custom-text font-semibold font-sans mb-2">Content</label>
               <Textarea
                 id="content"
+                placeholder="Write your post here..."
+                rows={10}
                 value={content}
                 onChange={(e) => setContent(e.target.value)}
-                placeholder="Write your amazing post here..."
-                rows={10}
-                required
+                className="w-full border border-custom-grey-100 text-custom-text placeholder-custom-grey-300 focus:ring-custom-green-300 focus:border-custom-green-300 rounded-md p-2 font-sans"
               />
             </div>
-            <div className="flex justify-end">
-              <Button type="submit" disabled={mutation.isPending}>
-                {mutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                Create Post
+            <div className="flex justify-end space-x-2 mt-6">
+              <Button type="button" onClick={handleCancel} className="border border-custom-grey-100 text-custom-text px-4 py-2 rounded-md hover:bg-custom-grey-100 font-sans">
+                Cancel
+              </Button>
+              <Button type="submit" className="bg-custom-green-300 text-custom-white px-4 py-2 rounded-md hover:opacity-90 font-sans">
+                Post
               </Button>
             </div>
           </form>
-        </CardContent>
-      </Card>
+        </div>
+      </main>
     </div>
   );
 }

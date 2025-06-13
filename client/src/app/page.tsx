@@ -1,43 +1,172 @@
-// File: client/src/app/page.tsx
+// client/app/page.tsx
 'use client';
+import Header from '@/components/Header';
 import PostCard from '@/components/PostCard';
-import { useQuery } from '@tanstack/react-query';
-import axios from 'axios';
-import { Loader2 } from 'lucide-react';
+import FloatingCreateButton from '@/components/FloatingCreateButton';
+import LeftSidebar from '@/components/LeftSidebar';
+import { useAuth } from '@/components/AuthProvider';
+import { useEffect, useState } from 'react';
+import { toast } from 'sonner';
+import { axiosInstance } from '@/components/AuthProvider';
 
-interface Post {
-  id: number;
-  title: string;
-  content: string;
-  author: { username: string; };
-  createdAt: string;
-  comments: unknown[];
-}
-
-const fetchPosts = async (): Promise<Post[]> => {
-  const { data } = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/posts`);
-  return data;
-};
+// เพิ่มส่วนประกอบสำหรับ Search, Community, Create +
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { Search } from 'lucide-react';
+import Link from 'next/link';
+import { ChevronDown } from 'lucide-react';
 
 export default function HomePage() {
-  const { data: posts, isLoading, error } = useQuery<Post[]>({
-    queryKey: ['posts'],
-    queryFn: fetchPosts,
-  });
+  const { isLoggedIn } = useAuth();
+  const [posts, setPosts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [isCommunityDropdownOpen, setIsCommunityDropdownOpen] = useState(false); // เพิ่ม state สำหรับควบคุม dropdown
 
-  if (isLoading) return <div className="flex justify-center items-center h-[calc(100vh-4rem)]"><Loader2 className="h-8 w-8 animate-spin" /></div>;
-  if (error) return <div className="text-red-500 text-center mt-10">Error fetching posts. Please ensure the backend server is running.</div>;
+  useEffect(() => {
+    const fetchPosts = async () => {
+      try {
+        setLoading(true);
+        const response = await axiosInstance.get('/posts');
+        setPosts(response.data);
+      } catch (err: any) {
+        setError(err.message);
+        toast.error(`Error fetching posts: ${err.message}`);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchPosts();
+  }, []);
+
+  // ฟังก์ชันสำหรับสลับการแสดงผล Dropdown
+  const toggleCommunityDropdown = () => {
+    setIsCommunityDropdownOpen(prevState => !prevState);
+  };
+
+  // ปิด Dropdown เมื่อคลิกนอกพื้นที่ (สำหรับ UX ที่ดีขึ้น)
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const dropdownContainer = document.getElementById('community-dropdown-container');
+      if (dropdownContainer && !dropdownContainer.contains(event.target as Node)) {
+        setIsCommunityDropdownOpen(false);
+      }
+    };
+
+    if (isCommunityDropdownOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    } else {
+      document.removeEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isCommunityDropdownOpen]);
+
+
+  if (loading) return <div className="text-center p-8 text-custom-text">กำลังโหลดโพสต์...</div>;
+  if (error) return <div className="text-center p-8 text-red-500">เกิดข้อผิดพลาด: ${error}</div>;
 
   return (
-    <div className="container mx-auto p-4 sm:p-6 md:p-8">
-      <h1 className="text-3xl md:text-4xl font-bold text-center my-6 md:my-8">Latest Posts</h1>
-      <div className="space-y-6">
-        {posts && posts.length > 0 ? (
-          posts.map((post) => <PostCard key={post.id} post={post} />)
-        ) : (
-          <p className="text-center text-gray-600">No posts found.</p>
-        )}
-      </div>
+    <div className="min-h-screen bg-[#BBC2C0] flex flex-col">
+      <Header />
+      
+      <div className="flex-grow container mx-auto flex flex-col md:flex-row"> 
+        
+        <div className="hidden md:block md:w-48 flex-shrink-0 bg-custom-white"> 
+          <LeftSidebar />
+        </div>
+
+        {/* *** ปรับตรงนี้: ลบ p-4 md:p-8 ออกจาก main *** */}
+        <main className="flex-grow flex flex-col"> 
+          {/* Div ล่องหน (Search, Community, Create+) */}
+          {/* *** ปรับตรงนี้: เพิ่ม p-4 md:p-8 กลับเข้ามาที่ div นี้ *** */}
+          <div className="bg-custom-white p-4 md:p-8 w-full"> 
+            <div className="flex items-center justify-between flex-wrap gap-10">
+              {/* Search Input */}
+              <div className="relative flex-grow"> 
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-custom-grey-300" />
+                <Input
+                  type="text"
+                  placeholder="Search"
+                  className="pl-9 pr-4 py-2 border border-white rounded-md focus:ring-custom-green-300 focus:border-custom-green-300 text-custom-text placeholder-custom-grey-300 font-sans w-full"
+                />
+              </div>
+
+              {/* Community Button with Dropdown */}
+              <div className="relative" id="community-dropdown-container">
+                <div className="flex items-center">
+                  {/* ปุ่ม Community (ข้อความเท่านั้น) - จะไม่เปิด dropdown */}
+                  <Button variant="ghost" className="text-custom-grey-300 hover:text-custom-text font-sans">
+                    Community
+                  </Button>
+                  {/* ปุ่ม Icon Dropdown - จะเปิด/ปิด dropdown */}
+                  <Button
+                    variant="ghost"
+                    className="text-custom-grey-300 hover:text-custom-text font-sans p-2 -ml-2"
+                    onClick={toggleCommunityDropdown}
+                  >
+                    <ChevronDown className="w-4 h-4" />
+                  </Button>
+                </div>
+                
+                {/* Dropdown menu */}
+                <div className={`absolute right-0 mt-2 w-48 bg-white border border-custom-grey-100 rounded-md shadow-lg z-50
+                                ${isCommunityDropdownOpen ? 'opacity-100 visible scale-100' : 'opacity-0 invisible scale-95'}
+                                transition-all duration-200 ease-in-out transform origin-top-right`}>
+                  <Link href="/community/history" className="block px-4 py-2 text-sm text-custom-text hover:bg-[#D8E9E4] font-sans">History</Link>
+                  <Link href="/community/food" className="block px-4 py-2 text-sm text-custom-text hover:bg-[#D8E9E4] font-sans">Food</Link>
+                  <Link href="/community/pets" className="block px-4 py-2 text-sm text-custom-text hover:bg-[#D8E9E4] font-sans">Pets</Link>
+                  <Link href="/community/health" className="block px-4 py-2 text-sm text-custom-text hover:bg-[#D8E9E4] font-sans">Health</Link>
+                  <Link href="/community/fashion" className="block px-4 py-2 text-sm text-custom-text hover:bg-[#D8E9E4] font-sans">Fashion</Link>
+                  <Link href="/community/exercise" className="block px-4 py-2 text-sm text-custom-text hover:bg-[#D8E9E4] font-sans">Exercise</Link>
+                  <Link href="/community/others" className="block px-4 py-2 text-sm text-custom-text hover:bg-[#D8E9E4] font-sans">Others</Link>
+                </div>
+              </div>
+
+              {/* Create+ Button */}
+              {isLoggedIn ? (
+                <Link href="/create-post">
+                <Button className="bg-custom-green-300 text-custom-white px-4 py-2 rounded-md hover:opacity-90 font-sans">
+                  สร้างโพสต์ +
+                </Button>
+                </Link>
+              ) : (
+                <Link href="/sign-in">
+                <Button className="bg-custom-green-300 text-custom-white px-4 py-2 rounded-md hover:opacity-90 font-sans">
+                  Create +
+                </Button>
+                </Link>
+              )}
+            </div>
+          </div>
+
+          {/* Post Cards Container */}
+          {/* *** ปรับตรงนี้: เพิ่ม p-4 md:p-8 กลับเข้ามาที่ div นี้ *** */}
+          <div className="w-full flex-grow p-4 md:p-8"> 
+            {posts.length > 0 ? (
+              <div className="bg-white rounded-lg shadow-md overflow-hidden"> 
+                <div className="divide-y divide-custom-grey-100">
+                  {posts.map((post: any) => (
+                    <PostCard key={post.id} post={post} />
+                  ))}
+                </div>
+              </div>
+            ) : (
+              <p className="text-center text-custom-text">ไม่พบโพสต์</p>
+            )}
+          </div>
+        </main>
+        
+        {/* Optional: Right Sidebar */}
+        <div className="hidden md:block md:w-48 flex-shrink-0 bg-custom-grey-100"> 
+        </div>
+
+      </div> {/* End of Main Content Area Flex Container */}
+
+      {isLoggedIn && <FloatingCreateButton />}
     </div>
   );
 }
