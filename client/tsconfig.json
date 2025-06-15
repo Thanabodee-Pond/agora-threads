@@ -1,3 +1,4 @@
+// C:\Users\Pond_Pond\Desktop\Project_Dev\Web-Board-App\client\tsconfig.json
 {
   "compilerOptions": {
     "target": "ES2017",
@@ -18,10 +19,21 @@
         "name": "next"
       }
     ],
+    "baseUrl": ".", // สำคัญ: กำหนด base URL สำหรับการ resolution
     "paths": {
       "@/*": ["./src/*"]
-    }
+    },
+    "typeRoots": [ // สำคัญ: บอก TypeScript ว่าจะหาไฟล์ .d.ts เพิ่มเติมได้ที่ไหน
+      "./node_modules/@types",
+      "./src/types" // เพิ่มพาธนี้หากคุณจะวาง next-auth.d.ts ใน client/src/types
+    ]
   },
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
+  "include": [
+    "next-env.d.ts",
+    "**/*.ts",
+    "**/*.tsx",
+    ".next/types/**/*.ts",
+    "src/types/**/*.ts" // สำคัญ: เปลี่ยนเพื่อให้รวมไฟล์ .d.ts ใน src/types
+  ],
   "exclude": ["node_modules"]
 }

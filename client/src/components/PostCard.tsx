@@ -1,31 +1,49 @@
 // client/components/PostCard.tsx
 import Link from 'next/link';
 import { MessageCircle, Bookmark } from 'lucide-react';
+import moment from 'moment'; // <<-- ตรวจสอบว่ามีการ import moment
+import 'moment/locale/th'; // <<-- ตรวจสอบว่ามีการ import locale th
+
+// กำหนด Type สำหรับ Comment เพื่อความชัดเจน (ใช้เหมือนใน page.tsx)
+interface Comment {
+  id: number; // หรือ string ตาม backend
+  content: string;
+  postId: number; // หรือ string
+  authorId: number; // หรือ string
+  createdAt: string;
+  author: {
+    username: string;
+  };
+}
 
 interface PostCardProps {
   post: {
-    id: string;
+    id: string; // หรือ number ตาม backend
     title: string;
     content: string;
     author: {
       username: string;
       avatarUrl?: string;
     };
-    category: string;
+    category?: string; // ตั้งเป็น optional เผื่อบางโพสต์ไม่มี
     createdAt: string;
-    commentCount: number;
+    comments: Comment[]; // <--- บรรทัดนี้สำคัญ: ให้ตรงกับ backend response
   };
 }
 
 export default function PostCard({ post }: PostCardProps) {
+  // ตั้งค่า locale ของ moment เป็นภาษาไทยสำหรับ Card นี้ด้วย
+  moment.locale('th');
+
   const formatDate = (dateString: string) => {
-    const options: Intl.DateTimeFormatOptions = { year: 'numeric', month: 'long', day: 'numeric' };
-    return new Date(dateString).toLocaleDateString('en-US', options);
+    // ใช้ moment แทน Date().toLocaleDateString เพื่อให้สอดคล้องกัน
+    return moment(dateString).format('DD MMMM BBBB'); // เช่น 15 มิถุนายน 2568
   };
 
+  // คำนวณ commentCount จากความยาวของ Array comments
+  const commentCount = post.comments ? post.comments.length : 0;
+
   return (
-    // *** สำคัญ: ไม่มี rounded-lg ที่นี่ ***
-    // ไม่มี border-b หรือ shadow-sm ด้วย
     <div className="bg-custom-white overflow-hidden">
       <Link href={`/posts/${post.id}`} className="block p-6">
         <div className="flex items-center mb-3 rounded-b-none">
@@ -38,12 +56,15 @@ export default function PostCard({ post }: PostCardProps) {
             <span className="font-semibold text-custom-text text-lg font-sans">
               {post.author.username}
             </span>
-            {/* แสดง Category ตรงนี้ */}
-            <span className="text-custom-grey-300 text-sm font-sans mb-1">
-              {post.category}
-            </span>
           </div>
         </div>
+
+        {/* ปรับดีไซน์ Category ตรงนี้ */}
+        {post.category && (
+          <span className="inline-block bg-[#F3F3F3] text-gray-500 text-xs font-semibold px-2.5 py-0.5 rounded-full mb-2">
+            {post.category}
+          </span>
+        )}
 
         <h2 className="text-2xl font-bold text-custom-text mb-2 font-sans leading-tight">
           {post.title}
@@ -57,7 +78,7 @@ export default function PostCard({ post }: PostCardProps) {
           <div className="flex items-center space-x-4">
             <span className="flex items-center">
               <MessageCircle className="w-4 h-4 mr-1" />
-              {post.commentCount} Comments
+              {commentCount} Comments
             </span>
             <span>{formatDate(post.createdAt)}</span>
           </div>

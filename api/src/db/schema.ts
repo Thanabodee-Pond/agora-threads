@@ -1,40 +1,51 @@
 // File: api/src/db/schema.ts
 
-import { pgTable, serial, text, timestamp, integer } from 'drizzle-orm/pg-core';
-import { relations } from 'drizzle-orm';
+import { pgTable, serial, text, timestamp, integer, varchar } from 'drizzle-orm/pg-core';
+import { relations, InferSelectModel } from 'drizzle-orm';
 
-// ตาราง users
+// --- ตาราง users ---
 export const users = pgTable('users', {
   id: serial('id').primaryKey(),
   username: text('username').notNull().unique(),
+  // ลบ password: text('password').notNull(), ออกจากตรงนี้
   createdAt: timestamp('created_at').defaultNow().notNull(),
 });
 
-// ตาราง posts
+// --- ตาราง posts ---
 export const posts = pgTable('posts', {
   id: serial('id').primaryKey(),
   title: text('title').notNull(),
   content: text('content').notNull(),
+  category: varchar('category', { length: 255 }),
   authorId: integer('author_id')
     .notNull()
-    .references(() => users.id, { onDelete: 'cascade' }), // <-- [แก้ไข] เพิ่ม onDelete: 'cascade'
+    .references(() => users.id, { onDelete: 'cascade' }),
   createdAt: timestamp('created_at').defaultNow().notNull(),
 });
 
-// ตาราง comments
+// --- ตาราง comments ---
 export const comments = pgTable('comments', {
   id: serial('id').primaryKey(),
   content: text('content').notNull(),
   postId: integer('post_id')
     .notNull()
-    .references(() => posts.id, { onDelete: 'cascade' }), // <-- [แก้ไข] เพิ่ม onDelete: 'cascade'
+    .references(() => posts.id, { onDelete: 'cascade' }),
   authorId: integer('author_id')
     .notNull()
-    .references(() => users.id, { onDelete: 'cascade' }), // <-- [แก้ไข] เพิ่ม onDelete: 'cascade'
+    .references(() => users.id, { onDelete: 'cascade' }),
   createdAt: timestamp('created_at').defaultNow().notNull(),
 });
 
-// Relations (ความสัมพันธ์)
+
+// --- [ เพิ่มส่วนนี้เพื่อสร้าง Type อัตโนมัติ ] ---
+export type User = InferSelectModel<typeof users>;
+
+export type NewUser = typeof users.$inferInsert;
+
+// ----------------------------------------------------
+
+
+// --- Relations (ความสัมพันธ์) ---
 export const usersRelations = relations(users, ({ many }) => ({
   posts: many(posts),
   comments: many(comments),

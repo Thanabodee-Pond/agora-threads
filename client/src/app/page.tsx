@@ -1,33 +1,75 @@
-// client/app/page.tsx
+// client/src/app/page.tsx
 'use client';
+
 import Header from '@/components/Header';
 import PostCard from '@/components/PostCard';
 import FloatingCreateButton from '@/components/FloatingCreateButton';
 import LeftSidebar from '@/components/LeftSidebar';
-import { useAuth } from '@/components/AuthProvider';
+import { useAuth } from '@/components/AuthProvider'; // <--- แก้ไขแล้ว
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import { axiosInstance } from '@/components/AuthProvider';
 
-// เพิ่มส่วนประกอบสำหรับ Search, Community, Create +
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Search } from 'lucide-react';
 import Link from 'next/link';
 import { ChevronDown } from 'lucide-react';
 
+// Type Definitions (ควรจะสอดคล้องกับ Backend Response)
+interface Author {
+  id: number;
+  username: string;
+  avatarUrl?: string;
+}
+
+interface Comment {
+  id: number;
+  content: string;
+  postId: number;
+  authorId: number;
+  createdAt: string;
+  author: {
+    username: string;
+  };
+}
+
+interface Post {
+  id: number;
+  title: string;
+  content: string;
+  authorId: number;
+  createdAt: string;
+  author: Author;
+  category?: string;
+  comments: Comment[];
+}
+
 export default function HomePage() {
   const { isLoggedIn } = useAuth();
-  const [posts, setPosts] = useState([]);
+  const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [isCommunityDropdownOpen, setIsCommunityDropdownOpen] = useState(false); // เพิ่ม state สำหรับควบคุม dropdown
+  const [isCommunityDropdownOpen, setIsCommunityDropdownOpen] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+  const [isSearchFocused, setIsSearchFocused] = useState(false); // <--- เพิ่ม state สำหรับตรวจสอบ focus ของช่องค้นหา
+
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 768); // Tailwind CSS 'md' breakpoint โดยทั่วไปคือ 768px
+    };
+
+    handleResize(); // ตั้งค่าสถานะเริ่มต้นเมื่อ component ถูก mount
+    window.addEventListener('resize', handleResize); // เพิ่ม event listener สำหรับการเปลี่ยนแปลงขนาดหน้าจอ
+
+    return () => window.removeEventListener('resize', handleResize); // Cleanup
+  }, []);
 
   useEffect(() => {
     const fetchPosts = async () => {
       try {
         setLoading(true);
-        const response = await axiosInstance.get('/posts');
+        const response = await axiosInstance.get<Post[]>('/posts');
         setPosts(response.data);
       } catch (err: any) {
         setError(err.message);
@@ -40,12 +82,10 @@ export default function HomePage() {
     fetchPosts();
   }, []);
 
-  // ฟังก์ชันสำหรับสลับการแสดงผล Dropdown
   const toggleCommunityDropdown = () => {
     setIsCommunityDropdownOpen(prevState => !prevState);
   };
 
-  // ปิด Dropdown เมื่อคลิกนอกพื้นที่ (สำหรับ UX ที่ดีขึ้น)
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       const dropdownContainer = document.getElementById('community-dropdown-container');
@@ -65,44 +105,54 @@ export default function HomePage() {
     };
   }, [isCommunityDropdownOpen]);
 
-
   if (loading) return <div className="text-center p-8 text-custom-text">กำลังโหลดโพสต์...</div>;
   if (error) return <div className="text-center p-8 text-red-500">เกิดข้อผิดพลาด: ${error}</div>;
 
   return (
     <div className="min-h-screen bg-[#BBC2C0] flex flex-col">
       <Header />
-      
-      <div className="flex-grow container mx-auto flex flex-col md:flex-row"> 
-        
-        <div className="hidden md:block md:w-48 flex-shrink-0 bg-custom-white"> 
+
+      <div className="flex-grow flex flex-col md:flex-row px-4 md:px-8">
+        <div className="hidden md:block md:w-1/5 flex-shrink-0 bg-custom-white">
           <LeftSidebar />
         </div>
 
-        {/* *** ปรับตรงนี้: ลบ p-4 md:p-8 ออกจาก main *** */}
-        <main className="flex-grow flex flex-col"> 
-          {/* Div ล่องหน (Search, Community, Create+) */}
-          {/* *** ปรับตรงนี้: เพิ่ม p-4 md:p-8 กลับเข้ามาที่ div นี้ *** */}
-          <div className="bg-custom-white p-4 md:p-8 w-full"> 
-            <div className="flex items-center justify-between flex-wrap gap-10">
-              {/* Search Input */}
-              <div className="relative flex-grow"> 
+        <main className="flex-grow flex flex-col w-full md:w-3/5 md:ml-10 mt-3">
+          {/*
+            *** แก้ไข: Search, Community Dropdown, Create+ version mobile ไม่มี card ครอบ ***
+            ย้ายคลาส card styling ทั้งหมดไปอยู่ภายใต้ md:
+          */}
+          <div className=""> {/* <--- แก้ไขตรงนี้ */}
+            {/*
+              ปรับการแสดงผลบน Mobile เมื่อ Search ถูก Focus
+              ถ้า isMobile และ isSearchFocused, จะซ่อน Community และ Create+
+            */}
+            <div className="flex flex-row items-center justify-between gap-4 py-4 md:gap-10">
+              {/* Search Bar */}
+              {/* เมื่อ Search Focused บน Mobile: ช่องค้นหาจะยึดพื้นที่ทั้งหมด */}
+              <div className={`relative ${isMobile && isSearchFocused ? 'flex-grow' : 'flex-1 md:w-auto'}`}>
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-custom-grey-300" />
                 <Input
                   type="text"
-                  placeholder="Search"
+                  // ถ้าเป็น Mobile และ Search Focused: placeholder คือ "Search"
+                  // ถ้าเป็น Mobile และไม่ Search Focused: placeholder คือ "" (ช่องว่าง)
+                  // ถ้าเป็น Desktop: placeholder คือ "Search"
+                  placeholder={isMobile ? (isSearchFocused ? "Search" : "") : "Search"}
                   className="pl-9 pr-4 py-2 border border-white rounded-md focus:ring-custom-green-300 focus:border-custom-green-300 text-custom-text placeholder-custom-grey-300 font-sans w-full"
+                  onFocus={() => { if (isMobile) setIsSearchFocused(true); }}
+                  onBlur={() => { if (isMobile) setIsSearchFocused(false); }}
                 />
               </div>
 
-              {/* Community Button with Dropdown */}
-              <div className="relative" id="community-dropdown-container">
-                <div className="flex items-center">
-                  {/* ปุ่ม Community (ข้อความเท่านั้น) - จะไม่เปิด dropdown */}
+              {/* Community Dropdown - ซ่อนเมื่อ Search ถูก focus บน mobile */}
+              <div
+                className={`relative w-auto md:w-auto ${isMobile && isSearchFocused ? 'hidden' : ''}`}
+                id="community-dropdown-container"
+              >
+                <div className="flex items-center justify-between md:justify-start">
                   <Button variant="ghost" className="text-custom-grey-300 hover:text-custom-text font-sans">
                     Community
                   </Button>
-                  {/* ปุ่ม Icon Dropdown - จะเปิด/ปิด dropdown */}
                   <Button
                     variant="ghost"
                     className="text-custom-grey-300 hover:text-custom-text font-sans p-2 -ml-2"
@@ -111,45 +161,45 @@ export default function HomePage() {
                     <ChevronDown className="w-4 h-4" />
                   </Button>
                 </div>
-                
-                {/* Dropdown menu */}
-                <div className={`absolute right-0 mt-2 w-48 bg-white border border-custom-grey-100 rounded-md shadow-lg z-50
+
+                <div className={`absolute right-0 mt-2 w-full md:w-48 bg-white border border-custom-grey-100 rounded-md shadow-lg z-50
                                 ${isCommunityDropdownOpen ? 'opacity-100 visible scale-100' : 'opacity-0 invisible scale-95'}
                                 transition-all duration-200 ease-in-out transform origin-top-right`}>
-                  <Link href="/community/history" className="block px-4 py-2 text-sm text-custom-text hover:bg-[#D8E9E4] font-sans">History</Link>
-                  <Link href="/community/food" className="block px-4 py-2 text-sm text-custom-text hover:bg-[#D8E9E4] font-sans">Food</Link>
-                  <Link href="/community/pets" className="block px-4 py-2 text-sm text-custom-text hover:bg-[#D8E9E4] font-sans">Pets</Link>
-                  <Link href="/community/health" className="block px-4 py-2 text-sm text-custom-text hover:bg-[#D8E9E4] font-sans">Health</Link>
-                  <Link href="/community/fashion" className="block px-4 py-2 text-sm text-custom-text hover:bg-[#D8E9E4] font-sans">Fashion</Link>
-                  <Link href="/community/exercise" className="block px-4 py-2 text-sm text-custom-text hover:bg-[#D8E9E4] font-sans">Exercise</Link>
-                  <Link href="/community/others" className="block px-4 py-2 text-sm text-custom-text hover:bg-[#D8E9E4] font-sans">Others</Link>
+                  <Link href="/community/history" className="block px-4 py-2 text-sm text-text-custom hover:bg-[#D8E9E4] font-sans" onClick={() => setIsCommunityDropdownOpen(false)}>History</Link>
+                  <Link href="/community/food" className="block px-4 py-2 text-sm text-text-custom hover:bg-[#D8E9E4] font-sans" onClick={() => setIsCommunityDropdownOpen(false)}>Food</Link>
+                  <Link href="/community/pets" className="block px-4 py-2 text-sm text-text-custom hover:bg-[#D8E9E4] font-sans" onClick={() => setIsCommunityDropdownOpen(false)}>Pets</Link>
+                  <Link href="/community/health" className="block px-4 py-2 text-sm text-text-custom hover:bg-[#D8E9E4] font-sans" onClick={() => setIsCommunityDropdownOpen(false)}>Health</Link>
+                  <Link href="/community/fashion" className="block px-4 py-2 text-sm text-text-custom hover:bg-[#D8E9E4] font-sans" onClick={() => setIsCommunityDropdownOpen(false)}>Fashion</Link>
+                  <Link href="/community/exercise" className="block px-4 py-2 text-sm text-text-custom hover:bg-[#D8E9E4] font-sans" onClick={() => setIsCommunityDropdownOpen(false)}>Exercise</Link>
+                  <Link href="/community/others" className="block px-4 py-2 text-sm text-text-custom hover:bg-[#D8E9E4] font-sans" onClick={() => setIsCommunityDropdownOpen(false)}>Others</Link>
                 </div>
               </div>
 
-              {/* Create+ Button */}
-              {isLoggedIn ? (
-                <Link href="/create-post">
-                <Button className="bg-custom-green-300 text-custom-white px-4 py-2 rounded-md hover:opacity-90 font-sans">
-                  สร้างโพสต์ +
-                </Button>
-                </Link>
-              ) : (
-                <Link href="/sign-in">
-                <Button className="bg-custom-green-300 text-custom-white px-4 py-2 rounded-md hover:opacity-90 font-sans">
-                  Create +
-                </Button>
-                </Link>
-              )}
+              {/* Create Post Button - ซ่อนเมื่อ Search ถูก focus บน mobile */}
+              <div className={`w-auto md:w-auto flex justify-end md:justify-start ${isMobile && isSearchFocused ? 'hidden' : ''}`}>
+                {isLoggedIn ? (
+                  <Link href="/create-post" className="w-auto md:w-auto">
+                    <Button className="bg-[#49A569] text-white px-4 py-2 rounded-md hover:bg-green-900 font-sans w-full">
+                      Create +
+                    </Button>
+                  </Link>
+                ) : (
+                  <Link href="/sign-in" className="w-auto md:w-auto">
+                    <Button className="bg-[#49A569] text-custom-white px-4 py-2 rounded-md hover:bg-green-900 font-sans w-full">
+                      Create +
+                    </Button>
+                  </Link>
+                )}
+              </div>
             </div>
           </div>
 
-          {/* Post Cards Container */}
-          {/* *** ปรับตรงนี้: เพิ่ม p-4 md:p-8 กลับเข้ามาที่ div นี้ *** */}
-          <div className="w-full flex-grow p-4 md:p-8"> 
+          {/* Post Cards Section */}
+          <div className="w-full flex-grow mt-4 md:mt-0">
             {posts.length > 0 ? (
-              <div className="bg-white rounded-lg shadow-md overflow-hidden"> 
+              <div className="bg-white rounded-lg shadow-md overflow-hidden my-0">
                 <div className="divide-y divide-custom-grey-100">
-                  {posts.map((post: any) => (
+                  {posts.map((post) => (
                     <PostCard key={post.id} post={post} />
                   ))}
                 </div>
@@ -159,12 +209,12 @@ export default function HomePage() {
             )}
           </div>
         </main>
-        
-        {/* Optional: Right Sidebar */}
-        <div className="hidden md:block md:w-48 flex-shrink-0 bg-custom-grey-100"> 
-        </div>
 
-      </div> {/* End of Main Content Area Flex Container */}
+        {/* Right Sidebar (hidden on mobile) */}
+        <div className="hidden md:block md:w-1/5 flex-shrink-0 bg-custom-white">
+          {/* เพิ่มเนื้อหาสำหรับ Sidebar ด้านขวา ถ้ามี */}
+        </div>
+      </div>
 
       {isLoggedIn && <FloatingCreateButton />}
     </div>

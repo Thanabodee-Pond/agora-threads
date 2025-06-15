@@ -1,22 +1,34 @@
+// File: api/src/auth/auth.module.ts (หลังการแก้ไขขั้นสุดท้าย)
 import { Module } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { AuthController } from './auth.controller';
 import { UsersModule } from '../users/users.module';
 import { PassportModule } from '@nestjs/passport';
 import { JwtModule } from '@nestjs/jwt';
-import { LocalStrategy } from './local.strategy';
+// import { LocalStrategy } from './local.strategy'; // <-- ลบบรรทัดนี้ออกไป
 import { JwtStrategy } from './jwt.strategy';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 
 @Module({
   imports: [
     UsersModule,
     PassportModule,
-    JwtModule.register({
-      secret: 'YOUR_SUPER_SECRET_KEY', // <-- **สำคัญมาก** เปลี่ยนเป็น Key ที่ซับซ้อนของคุณ
-      signOptions: { expiresIn: '60m' }, // Token หมดอายุใน 60 นาที
+    ConfigModule,
+    JwtModule.registerAsync({
+      imports: [ConfigModule],
+      useFactory: async (configService: ConfigService) => ({
+        secret: configService.get<string>('JWT_SECRET'),
+        signOptions: { expiresIn: '60m' },
+      }),
+      inject: [ConfigService],
     }),
   ],
-  providers: [AuthService, LocalStrategy, JwtStrategy],
+  providers: [
+    AuthService,
+    // LocalStrategy, // <-- ลบบรรทัดนี้ออกไป
+    JwtStrategy
+  ],
   controllers: [AuthController],
+  exports: [AuthService, JwtModule],
 })
 export class AuthModule {}

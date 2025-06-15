@@ -1,10 +1,12 @@
-// client/app/layout.tsx (โค้ดปัจจุบันของคุณที่มีปัญหา Hydration Error)
+// client/src/app/layout.tsx
 import type { Metadata } from 'next';
 import { Inter, Noto_Sans_Thai, Castoro } from 'next/font/google';
 
 import './globals.css';
-import { AuthProvider } from '@/components/AuthProvider';
-import { Toaster } from '@/components/ui/sonner';
+import { Providers } from '@/components/Providers';
+
+// *** เพิ่ม: นำเข้า cn utility ***
+import { cn } from '@/lib/utils'; 
 
 // Define your fonts here
 const inter = Inter({ subsets: ['latin'], variable: '--font-body' });
@@ -13,9 +15,9 @@ const notoSansThai = Noto_Sans_Thai({
   variable: '--font-heading',
 });
 const castoro = Castoro({
-  weight: '400', // Castoro มีแค่ weight 400
+  weight: '400', 
   subsets: ['latin'],
-  variable: '--font-castoro', // กำหนด CSS variable สำหรับ Castoro
+  variable: '--font-castoro',
 });
 
 export const metadata: Metadata = {
@@ -30,12 +32,17 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      {/* เพิ่ม class ของ Castoro เข้าไปใน body ด้วย */}
-      <body className={`${inter.variable} ${notoSansThai.variable} ${castoro.variable}`}> {/* <-- สาเหตุของปัญหา */}
-        <AuthProvider>
+      <body 
+        className={cn(
+          inter.variable, 
+          notoSansThai.variable, 
+          castoro.variable
+        )}
+        suppressHydrationWarning={true} // *** เพิ่มบรรทัดนี้ ***
+      >
+        <Providers>
           {children}
-          <Toaster />
-        </AuthProvider>
+        </Providers>
       </body>
     </html>
   );

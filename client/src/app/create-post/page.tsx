@@ -7,7 +7,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
-import { useAuth, axiosInstance } from '@/components/AuthProvider'; // นำเข้า axiosInstance
+import { useAuth, axiosInstance } from '@/components/AuthProvider';
 
 export default function CreatePostPage() {
   const router = useRouter();
@@ -41,12 +41,19 @@ export default function CreatePostPage() {
         content,
         category,
       }, {
-        headers: { Authorization: `Bearer ${accessToken}` }, // ส่ง accessToken ไปด้วย
+        headers: { Authorization: `Bearer ${accessToken}` },
       });
       toast.success("Post created successfully!", {
         className: "bg-custom-success text-custom-white",
       });
-      router.push(`/posts/${response.data.id}`); // ไปยังหน้า Post Detail ของโพสต์ที่สร้างใหม่
+      
+      // *** เปลี่ยนบรรทัดนี้ ***
+      router.push('/'); // ไปยังหน้าแรก
+      // ถ้าอยากล้างฟอร์มหลังจากสร้างเสร็จ ก็สามารถเพิ่มบรรทัดนี้ได้
+      // setTitle('');
+      // setContent('');
+      // setCategory('');
+
     } catch (err: any) {
       toast.error(`Failed to create post: ${err.response?.data?.message || err.message}`);
     }
