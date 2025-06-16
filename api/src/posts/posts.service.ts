@@ -3,7 +3,7 @@
 import { Inject, Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
 import { DRIZZLE_ORM_TOKEN } from '../db/drizzle.provider';
 import { db } from '../db';
-import * as schema from '../db/schema'; // สันนิษฐานว่า schema.posts มี category field
+import * as schema from '../db/schema';
 import { desc, eq } from 'drizzle-orm';
 import { CreatePostDto } from './dto/create-post.dto';
 import { UpdatePostDto } from './dto/update-post.dto';
@@ -14,10 +14,15 @@ type DbInstance = typeof db;
 export class PostsService {
   constructor(@Inject(DRIZZLE_ORM_TOKEN) private drizzle: DbInstance) {}
 
-  async create(createPostDto: CreatePostDto, userId: number) {
+  async create(createPostDto: Pick<CreatePostDto, 'title' | 'content' | 'category'>, userId: number) {
     const [newPost] = await this.drizzle
       .insert(schema.posts)
-      .values({ ...createPostDto, authorId: userId })
+      .values({
+        title: createPostDto.title,
+        content: createPostDto.content,
+        category: createPostDto.category || null,
+        authorId: userId,
+      })
       .returning();
     return newPost;
   }
@@ -32,12 +37,12 @@ export class PostsService {
         content: true,
         authorId: true,
         createdAt: true,
-        category: true, // <--- เพิ่มบรรทัดนี้
+        category: true,
       },
       with: {
-        author: { columns: { username: true } },
+        author: { columns: { username: true, avatarUrl: true } }, // <-- แก้ไข: เพิ่ม true หลัง username:
         comments: {
-          with: { author: { columns: { username: true } } },
+          with: { author: { columns: { username: true, avatarUrl: true } } }, // <-- แก้ไข: เพิ่ม true หลัง username:
           orderBy: [desc(schema.comments.createdAt)],
         },
       },
@@ -54,12 +59,12 @@ export class PostsService {
         content: true,
         authorId: true,
         createdAt: true,
-        category: true, // <--- เพิ่มบรรทัดนี้
+        category: true,
       },
       with: {
-        author: { columns: { username: true } } ,
+        author: { columns: { username: true, avatarUrl: true } } , // <-- แก้ไข: เพิ่ม true หลัง username:
         comments: {
-          with: { author: { columns: { username: true } } },
+          with: { author: { columns: { username: true, avatarUrl: true } } }, // <-- แก้ไข: เพิ่ม true หลัง username:
           orderBy: [desc(schema.comments.createdAt)],
         },
       },
@@ -81,10 +86,10 @@ export class PostsService {
         content: true,
         authorId: true,
         createdAt: true,
-        category: true, // <--- เพิ่มบรรทัดนี้ถ้าต้องการ
+        category: true,
       },
       with: {
-        author: { columns: { username: true } },
+        author: { columns: { username: true, avatarUrl: true } }, // <-- แก้ไข: เพิ่ม true หลัง username:
         comments: true,
       },
     });

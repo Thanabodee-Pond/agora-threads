@@ -14,7 +14,7 @@ export default function SignInPage() {
   const [username, setUsername] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
-  const { login } = useAuth();
+  const { login } = useAuth(); // ดึงฟังก์ชัน login จาก useAuth
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -28,19 +28,20 @@ export default function SignInPage() {
 
     try {
       const response = await axiosInstance.post('/auth/register', { username });
-      const data = response.data;
+      const data = response.data; // data คือ { user: {...}, accessToken: "..." }
 
       console.log('Login/Register Response:', data);
 
       // --- [ แก้ไขตรงนี้ ] ---
-      // เปลี่ยนจาก data.access_token เป็น data.accessToken เพื่อให้ตรงกับ Backend Response
-      if (data.accessToken) {
-        login(data.accessToken); // เรียกใช้ฟังก์ชัน login เพื่อเก็บ token
+      // ต้องตรวจสอบว่ามีทั้ง accessToken และ user object ก่อนเรียก login
+      if (data.accessToken && data.user) {
+        login(data.accessToken, data.user); // <-- ส่ง data.user ไปให้ login function
         toast.success('เข้าสู่ระบบสำเร็จ!');
         router.push('/');
       } else {
-        throw new Error('ไม่ได้รับ Access Token');
+        throw new Error('ไม่ได้รับ Access Token หรือ User Data'); // กรณีที่ไม่ได้ทั้งคู่
       }
+      // -------------------------
     } catch (error: any) {
       console.error('Login/Register Error:', error);
       const errorMessage = error.response?.data?.message || error.message || 'เกิดข้อผิดพลาดบางอย่าง';

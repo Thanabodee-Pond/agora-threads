@@ -4,7 +4,6 @@
 import { useParams, useRouter } from 'next/navigation';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import axios from 'axios';
-import { useSession } from 'next-auth/react';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import moment from 'moment';
@@ -15,13 +14,13 @@ import { Button } from '@/components/ui/button';
 import { Loader2, MessageCircle, Bookmark, ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
 import CommentSidebar from '@/components/CommentSidebar';
+import { useAuth, axiosInstance } from '@/components/AuthProvider'
 
-
-// 1. Type Definitions (ยังคงเดิม)
+// 1. Type Definitions
 interface Author {
-  id: string;
+  id: number;
   username: string;
-  avatarUrl?: string;
+  avatarUrl?: string | null; // <-- เพิ่ม | null เพื่อรองรับค่าจาก DB
 }
 
 interface Comment {
@@ -32,7 +31,7 @@ interface Comment {
   createdAt: string;
   author: {
     username: string;
-    avatarUrl?: string;
+    avatarUrl?: string | null; // <-- เพิ่ม | null
   };
 }
 
@@ -40,18 +39,11 @@ interface Post {
   id: string;
   title: string;
   content: string;
-  category?: string;
+  category?: string | null; // <-- เพิ่ม | null
   author: Author;
   createdAt: string;
   comments: Comment[];
 }
-
-// 2. Axios Instance และฟังก์ชัน API (ยังคงเดิม)
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
-const axiosInstance = axios.create({
-  baseURL: API_BASE_URL,
-  headers: { 'Content-Type': 'application/json' },
-});
 
 const fetchPostById = async (id: string): Promise<Post> => {
   if (!id) throw new Error("Post ID is required for fetching.");
@@ -60,7 +52,7 @@ const fetchPostById = async (id: string): Promise<Post> => {
 };
 
 const addComment = async ({ postId, content, token }: { postId: string; content: string; token: string }) => {
-  console.log("Sending comment:", { postId, content }); // เพิ่ม console log เพื่อดูข้อมูลที่ส่ง
+  console.log("Sending comment with token:", token);
   const { data } = await axiosInstance.post(`/comments`, { postId: parseInt(postId), content }, {
     headers: { Authorization: `Bearer ${token}` },
   });
@@ -74,12 +66,12 @@ export default function PostDetailsPage() {
   const postId = params.id as string;
 
   const queryClient = useQueryClient();
-  const { data: session, status: sessionStatus } = useSession();
+  const { isLoggedIn, accessToken, user } = useAuth(); // <-- ใช้ useAuth และดึง user มาด้วย
   const [newCommentContent, setNewCommentContent] = useState('');
-  const [isCommentInputVisible, setIsCommentInputVisible] = useState(false); // เปลี่ยนชื่อ state ให้สื่อถึงการแสดง input field
+  const [isCommentInputVisible, setIsCommentInputVisible] = useState(false);
 
   useEffect(() => {
-    // moment.locale('th'); // ลบบรรทัดนี้ออก หรือคอมเมนต์ไว้ เพื่อให้ใช้ภาษาอังกฤษเป็นค่าเริ่มต้น
+    // moment.locale('th'); // ลบหรือคอมเมนต์
   }, []);
 
   const {
@@ -97,19 +89,19 @@ export default function PostDetailsPage() {
   const addCommentMutation = useMutation({
     mutationFn: addComment,
     onSuccess: (newComment) => {
-      console.log("Comment success:", newComment); // เพิ่ม console log เมื่อสำเร็จ
+      console.log("Comment success:", newComment);
       toast.success("Comment added successfully!");
       setNewCommentContent('');
-      setIsCommentInputVisible(false); // ปิด input field หลังจากส่งคอมเมนต์สำเร็จ
+      setIsCommentInputVisible(false);
 
       queryClient.setQueryData<Post>(['post', postId], (oldPost) => {
         if (!oldPost) return oldPost;
-        // สร้าง comment object ที่สมบูรณ์ รวมถึง author
         const commentWithAuthor: Comment = {
           ...newComment,
           author: {
-            username: session?.user?.name || 'Anonymous', // ใช้ชื่อผู้ใช้จาก session
-            avatarUrl: session?.user?.image || undefined, // ใช้อวาตารจาก session
+            id: newComment.authorId, // Backend คืน authorId มา
+            username: user?.username || 'Anonymous', // ใช้ username จาก user object ของ useAuth
+            avatarUrl: user?.avatarUrl || null, // ใช้ avatarUrl จาก user object ของ useAuth
           },
         };
         return {
@@ -120,7 +112,7 @@ export default function PostDetailsPage() {
     },
     onError: (error) => {
       const errorMessage = axios.isAxiosError(error) ? error.response?.data?.message : error.message;
-      console.error("Comment error:", error.response?.data || error.message); // เพิ่ม console log เมื่อมีข้อผิดพลาด
+      console.error("Comment error:", error.response?.data || error.message);
       toast.error(`Failed to add comment: ${errorMessage}`);
     },
   });
@@ -166,16 +158,15 @@ export default function PostDetailsPage() {
     );
   }
 
-  // Helper function for date format, uses .fromNow()
   const formatTimeAgo = (dateString: string) => {
-    return moment(dateString).fromNow(); // e.g., "5 minutes ago", "2 hours ago", "3 days ago"
+    return moment(dateString).fromNow();
   };
 
-  const getUserAvatar = (user: { username: string; avatarUrl?: string }, size: 'sm' | 'md' = 'sm') => {
+  const getUserAvatar = (user: { username: string; avatarUrl?: string | null }, size: 'sm' | 'md' = 'sm') => {
     const avatarSizeClass = size === 'sm' ? 'w-7 h-7' : 'w-10 h-10';
-    const textBaseSize = size === 'sm' ? 'text-xs' : 'text-sm'; // For fallback avatar text size
-  
-    if (user.avatarUrl) {
+    // const textBaseSize = size === 'sm' ? 'text-xs' : 'text-sm'; // ไม่ใช้แล้ว
+ 
+    if (user.avatarUrl && user.avatarUrl.trim() !== '') {
       return (
         <img
           src={user.avatarUrl}
@@ -184,50 +175,48 @@ export default function PostDetailsPage() {
         />
       );
     }
+    // Fallback: ใช้รูปภาพ default แทนตัวอักษร
     return (
-      <div className={`${avatarSizeClass} rounded-full bg-gray-300 flex items-center justify-center font-semibold text-gray-600 mr-2 ${textBaseSize}`}>
-        {user.username.charAt(0).toUpperCase()}
-      </div>
+      <img
+        src="/pond_avatar.png" // <-- ใช้รูปภาพ default ที่นี่
+        alt={user.username}
+        className={`${avatarSizeClass} rounded-full mr-2 object-cover border border-custom-grey-100`}
+      />
     );
   };
 
   const handlePostComment = () => {
-    if (newCommentContent.trim() === '') { // Prevent empty comments
+    if (newCommentContent.trim() === '') {
       toast.error("Comment cannot be empty.");
       return;
     }
-    if (session?.accessToken) {
-      console.log("Attempting to post comment with token:", session.accessToken); // Log token
-      addCommentMutation.mutate({
-        postId: postId,
-        content: newCommentContent,
-        token: session.accessToken as string,
-      });
-    } else {
+    if (!accessToken) {
       toast.error("Authentication token not found. Please log in again.");
+      return;
     }
+    const postIdNum = parseInt(postId, 10);
+    if (isNaN(postIdNum)) {
+        toast.error("Invalid Post ID for comment.");
+        return;
+    }
+    
+    console.log("Attempting to post comment with token:", accessToken);
+    addCommentMutation.mutate({
+      postId: postIdNum.toString(),
+      content: newCommentContent,
+      token: accessToken,
+    });
   };
 
-
-  // --- Render UI ของหน้ารายละเอียดโพสต์ ---
   return (
     <div className="min-h-screen bg-[#BBC2C0] flex flex-col">
       <Header />
-
-      {/* Main content area below header. This div now applies horizontal padding like app/page.tsx */}
       <div className="flex-grow flex flex-col md:flex-row px-4 md:pl-8 md:pr-0">
-        {/* Sidebar ด้านซ้าย (ซ่อนบนมือถือ) - Adjusted to match app/page.tsx */}
         <div className="hidden md:block md:w-[220px] flex-shrink-0 bg-custom-white">
           <LeftSidebar />
         </div>
-
-        {/* Content Area (Main Post + Right Sidebar) - NEW STRUCTURE */}
-        {/* Adjusted ml-20 to this wrapper div */}
         <div className="flex-grow flex bg-white ml-30">
-          {/* Main Post Content */}
-          {/* Removed ml-20, p-4 md:p-8 moved here to control padding within the main content area */}
           <main className="flex-grow flex flex-col w-full p-4 md:p-8 ml-15">
-            {/* ปุ่มย้อนกลับไปหน้า Home */}
             <div className="mb-4">
               <Button
                 variant="ghost"
@@ -244,14 +233,9 @@ export default function PostDetailsPage() {
               </Button>
             </div>
 
-            {/* ส่วนแสดงรายละเอียดของโพสต์ */}
             <div className="mb-4">
               <div className="flex items-center mb-3">
-                <img
-                  src={postData.author.avatarUrl || '/pond_avatar.png'}
-                  alt={postData.author.username}
-                  className="w-10 h-10 rounded-full object-cover mr-3 border border-custom-grey-100"
-                />
+                {getUserAvatar(postData.author)}
                 <div className="flex items-baseline">
                   <span className="font-semibold text-custom-text text-lg font-sans">
                     {postData.author.username}
@@ -285,9 +269,8 @@ export default function PostDetailsPage() {
               </div>
             </div>
 
-            {/* Conditional rendering สำหรับปุ่ม Add Comments หรือ Comment Input */}
             <div className="mb-6">
-              {sessionStatus === 'authenticated' ? (
+              {isLoggedIn ? (
                 isCommentInputVisible ? (
                   <CommentSidebar
                     onClose={() => {
@@ -302,7 +285,7 @@ export default function PostDetailsPage() {
                 ) : (
                   <Button
                     className="bg-[#49A569] text-white px-4 py-2 rounded-md hover:bg-green-900 font-sans self-start"
-                    onClick={() => setIsCommentInputVisible(true)} // แสดง input field
+                    onClick={() => setIsCommentInputVisible(true)}
                   >
                     Add Comments
                   </Button>
@@ -314,7 +297,6 @@ export default function PostDetailsPage() {
               )}
             </div>
             
-            {/* ส่วนแสดงความคิดเห็น (Comment List) - จะถูกแสดงเสมอ ไม่ว่า Comment Input จะเปิดหรือไม่ */}
             <div className="space-y-4 divide-y divide-custom-grey-100 mt-4">
               {postData.comments.length > 0 ? (
                 postData.comments
@@ -335,10 +317,6 @@ export default function PostDetailsPage() {
             </div>
           </main>
 
-          {/* Right Sidebar - NEW */}
-          {/* hidden md:block: ซ่อนบนจอเล็ก, แสดงบนจอใหญ่ */}
-          {/* w-1/5: ใช้ 20% ของความกว้างของ parent (ซึ่งคือ div ที่มี flex-grow) */}
-          {/* flex-shrink-0: ป้องกันไม่ให้ sidebar หดตัวเมื่อพื้นที่ไม่พอ */}
           <aside className="hidden md:block w-1/5 flex-shrink-0 bg-white p-4 ">
           </aside>
         </div>

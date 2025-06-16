@@ -1,20 +1,30 @@
-// client/components/AuthProvider.tsx
+// File: client/components/AuthProvider.tsx
 'use client';
 
-import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react'; // เพิ่ม useMemo
 import axios from 'axios';
 import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
 import { jwtDecode } from 'jwt-decode';
-import { useSession } from 'next-auth/react'; 
+// import { useSession } from 'next-auth/react'; // ลบถ้าไม่ได้ใช้ NextAuth
 
 // 1. กำหนด Interface สำหรับข้อมูลที่ถอดรหัสได้จาก JWT (Payload)
 interface JwtPayload {
   username: string;
-  avatarUrl?: string; // ตั้งเป็น optional เผื่อบาง user ไม่มีรูป
-  sub: string;
+  avatarUrl?: string | null; // <-- เพิ่ม | null
+  sub: number; // <-- แก้ไข: เปลี่ยนเป็น number ตาม schema.id (Backend)
   iat: number;
   exp: number;
+}
+
+// 2. กำหนด Interface สำหรับ User Data ที่ส่งมาจาก Backend (ใน Response Body)
+// Backend ของเราส่ง { user: { id, username, createdAt, avatarUrl }, accessToken }
+// ดังนั้น user object นี้คือสิ่งที่เราจะเก็บใน AuthProvider
+interface AuthUser {
+  id: number;
+  username: string;
+  createdAt: string;
+  avatarUrl?: string | null; // <-- เพิ่ม: avatarUrl
 }
 
 interface AuthContextType {
@@ -22,9 +32,10 @@ interface AuthContextType {
   username: string | null;
   userAvatarUrl: string | null;
   accessToken: string | null;
-  login: (token: string) => void;
+  login: (token: string, userFromServer: AuthUser) => void; // <-- แก้ไข: รับ userFromServer ด้วย
   logout: () => void;
-  isLoading: boolean; // *** เพิ่ม: สถานะการโหลด/ตรวจสอบ Auth เสร็จสิ้น ***
+  isLoading: boolean;
+  user: AuthUser | null; // <-- เพิ่ม user object เต็มๆ ใน context
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -40,68 +51,70 @@ export const axiosInstance = axios.create({
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const router = useRouter();
-  const { data: session, status: sessionStatus } = useSession(); // ยังคงมี useSession แต่ไม่ได้ใช้โดยตรงใน logic นี้มากนัก
-  
+  // const { data: session, status: sessionStatus } = useSession(); // ลบ/คอมเมนต์ถ้าไม่ได้ใช้
+
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [username, setUsername] = useState<string | null>(null);
   const [userAvatarUrl, setUserAvatarUrl] = useState<string | null>(null);
   const [accessToken, setAccessToken] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(true); // *** ตั้งค่าเริ่มต้นเป็น true เพื่อให้รู้ว่ากำลังตรวจสอบ Auth ***
+  const [isLoading, setIsLoading] = useState(true);
+  const [user, setUser] = useState<AuthUser | null>(null); // State สำหรับเก็บ user object เต็มๆ
 
   const logout = useCallback(() => {
     setIsLoggedIn(false);
     setUsername(null);
     setUserAvatarUrl(null);
     setAccessToken(null);
-    // เข้าถึง localStorage โดยตรงไม่จำเป็นต้องเช็ค isMounted ใน useCallback
-    // เพราะ useCallback จะถูกเรียกหลังจาก component mount และมีการ hydration แล้ว
+    setUser(null); // <-- ลบ user object ด้วย
     localStorage.removeItem('accessToken');
-    localStorage.removeItem('username');
-    localStorage.removeItem('userAvatarUrl');
-    // Note: If you're using Next.js Auth, you might also want to call signOut() here
-    // signOut({ redirect: false }).then(() => router.push('/sign-in'));
-  }, []); // ไม่มี dependency isMounted เพราะมันถูกใช้ใน useEffect ที่ isMounted แล้ว
+    localStorage.removeItem('user'); // <-- ลบ user object ที่เก็บไว้ใน localStorage
+    // ไม่จำเป็นต้องลบ 'username' และ 'userAvatarUrl' แยกแล้วถ้าเก็บ user object เต็มๆ
 
-  // Initial check for token in localStorage (Runs only on client-side after mount)
+    delete axiosInstance.defaults.headers.common['Authorization']; // ลบ Header
+    router.push('/sign-in'); // Redirect
+  }, [router]);
+
+  // Initial check for token & user in localStorage (Runs only on client-side after mount)
   useEffect(() => {
-    // โค้ดใน useEffect นี้จะรันเฉพาะบน Client
     const token = localStorage.getItem('accessToken');
-    const storedUsername = localStorage.getItem('username');
-    const storedAvatarUrl = localStorage.getItem('userAvatarUrl');
+    const storedUserJson = localStorage.getItem('user'); // <-- ดึง user object ที่เก็บไว้
 
-    if (token) {
+    if (token && storedUserJson) {
       try {
         const decodedToken: JwtPayload = jwtDecode(token);
+        const storedUser: AuthUser = JSON.parse(storedUserJson);
+
         if (decodedToken.exp * 1000 < Date.now()) {
-          console.log('Stored token expired during initial check. Logging out.');
+          console.log('AuthProvider: Stored token expired during initial check. Logging out.');
           logout();
         } else {
           setIsLoggedIn(true);
-          setUsername(storedUsername);
-          setUserAvatarUrl(storedAvatarUrl);
           setAccessToken(token);
+          // ใช้ข้อมูลจาก storedUser ที่ดึงมาจาก localStorage
+          setUser(storedUser);
+          setUsername(storedUser.username);
+          setUserAvatarUrl(storedUser.avatarUrl || null);
+          axiosInstance.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+          console.log("AuthProvider: Loaded from localStorage. Username:", storedUser.username, "Avatar:", storedUser.avatarUrl);
         }
       } catch (error) {
-        console.error("Failed to decode token from localStorage:", error);
+        console.error("AuthProvider: Failed to decode token or parse user from localStorage:", error);
         logout();
       }
     } else {
-      // ไม่มี token ใน localStorage, ต้องแน่ใจว่า state เป็น logged out
-      logout(); // เรียก logout เพื่อล้าง state ทั้งหมด (ถ้าไม่มี token แต่ state ก่อนหน้านี้เป็น true)
+      // ไม่มี token หรือ user ใน localStorage, ต้องแน่ใจว่า state เป็น logged out
+      logout();
     }
-    setIsLoading(false); // *** ตั้งค่าเป็น false เมื่อตรวจสอบ Auth เสร็จสิ้นแล้ว ***
-  }, [logout]); // logout เป็น dependency เพื่อให้ useCallback ไม่เก่าเกินไป
+    setIsLoading(false); // ตั้งค่าเป็น false เมื่อตรวจสอบ Auth เสร็จสิ้นแล้ว
+  }, [logout]);
 
   // Axios Interceptors (ตั้งค่าหลังจาก Initial Auth check เสร็จสิ้น)
   useEffect(() => {
-    // Interceptor ควรจะทำงานหลังจากโหลด token จาก localStorage ใน useEffect ด้านบนเสร็จสิ้น
-    // เพื่อให้มั่นใจว่า accessToken ใน closure ของ interceptor ถูกต้อง
     if (isLoading) return; // ไม่ทำงานถ้ายังตรวจสอบ Auth ไม่เสร็จ
 
     const requestInterceptor = axiosInstance.interceptors.request.use(
       (config) => {
-        // ใช้ accessToken จาก state ที่ได้มาจากการ initial check หรือ login
-        const token = accessToken; 
+        const token = accessToken; // ใช้ accessToken จาก state
         if (token) {
           config.headers.Authorization = `Bearer ${token}`;
         }
@@ -114,10 +127,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       (response) => response,
       (error) => {
         if (error.response && error.response.status === 401) {
-          console.error("Authentication Error (401): Token might be expired or invalid.");
+          console.error("AuthProvider: Authentication Error (401): Token might be expired or invalid.");
           toast.error("Session expired. Please sign in again.");
           logout();
-          router.push('/sign-in'); // Redirect ไปหน้า Sign In หลังจาก Logout เนื่องจาก 401
         }
         return Promise.reject(error);
       }
@@ -127,10 +139,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       axiosInstance.interceptors.request.eject(requestInterceptor);
       axiosInstance.interceptors.response.eject(responseInterceptor);
     };
-  }, [logout, accessToken, isLoading, router]); // เพิ่ม isLoading, router ใน dependency
+  }, [logout, accessToken, isLoading]); // accessToken เป็น dependency
 
-  // ปรับปรุงฟังก์ชัน login ให้จัดการ state และ localStorage อย่างครบถ้วน
-  const login = useCallback((token: string) => {
+  // ปรับปรุงฟังก์ชัน login ให้รับ userFromServer และเก็บข้อมูลลง state/localStorage
+  const login = useCallback((token: string, userFromServer: AuthUser) => { // <-- รับ userFromServer
     try {
       const decodedToken: JwtPayload = jwtDecode(token);
 
@@ -141,40 +153,39 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
 
       setIsLoggedIn(true);
-      setUsername(decodedToken.username);
-      setUserAvatarUrl(decodedToken.avatarUrl || null);
       setAccessToken(token);
+      // ใช้ข้อมูลจาก userFromServer ที่ได้รับมาโดยตรง
+      setUsername(userFromServer.username);
+      setUserAvatarUrl(userFromServer.avatarUrl || null);
+      setUser(userFromServer); // <-- เก็บ user object เต็มๆ
 
       localStorage.setItem('accessToken', token);
-      localStorage.setItem('username', decodedToken.username);
-      if (decodedToken.avatarUrl) {
-        localStorage.setItem('userAvatarUrl', decodedToken.avatarUrl || ''); // Store empty string if null
-      } else {
-        localStorage.removeItem('userAvatarUrl');
-      }
+      localStorage.setItem('user', JSON.stringify(userFromServer)); // <-- เก็บ user object เต็มๆ
+
+      axiosInstance.defaults.headers.common['Authorization'] = `Bearer ${token}`;
 
       toast.success('Logged in successfully!');
+      console.log("AuthProvider: User logged in. Username:", userFromServer.username, "Avatar:", userFromServer.avatarUrl);
     } catch (error) {
-      console.error("Failed to decode token or token is invalid:", error);
+      console.error("AuthProvider: Failed to decode token or token is invalid:", error);
       toast.error("An invalid token was provided. Could not sign in.");
       logout();
     }
   }, [logout]);
 
-  const contextValue = {
+  const contextValue = useMemo(() => ({ // ใช้ useMemo เพื่อป้องกันการ re-render ไม่จำเป็น
     isLoggedIn,
     username,
     userAvatarUrl,
     accessToken,
     login,
     logout,
-    isLoading, // *** ส่ง isLoading ไปใน context ด้วย ***
-  };
+    isLoading,
+    user, // ส่ง user object เต็มๆ ออกไป
+  }), [isLoggedIn, username, userAvatarUrl, accessToken, login, logout, isLoading, user]);
 
-  // *** สำคัญ: ตรวจสอบ isLoading ก่อน Render children ***
-  // ถ้า isLoading เป็น true หมายถึง AuthProvider ยังไม่เสร็จสิ้นการตรวจสอบ localStorage
-  // ในระหว่างนี้ เราจะไม่ Render children เพื่อป้องกัน Hydration mismatch
-  // คุณสามารถแสดง Spinner หรือ Loading Indicator แทนได้
+
+  // ตรวจสอบ isLoading ก่อน Render children
   if (isLoading) {
     return (
       <div className="flex justify-center items-center min-h-screen bg-[#BBC2C0]">

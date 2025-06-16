@@ -7,6 +7,7 @@ import { relations, InferSelectModel } from 'drizzle-orm';
 export const users = pgTable('users', {
   id: serial('id').primaryKey(),
   username: text('username').notNull().unique(),
+  avatarUrl: text('avatar_url'),
   // ลบ password: text('password').notNull(), ออกจากตรงนี้
   createdAt: timestamp('created_at').defaultNow().notNull(),
 });
