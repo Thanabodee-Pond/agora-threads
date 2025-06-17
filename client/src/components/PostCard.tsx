@@ -128,7 +128,7 @@ export default function PostCard({ post }: PostCardProps) {
             <AlertDialogContent className='flex flex-col items-center w-96 h-60 justify-center'> 
               <AlertDialogHeader className="text-center"> 
                 <AlertDialogTitle className="justify-cente text-center">
-                  <h1>Please confirm if you wish to <br/> delete the post</h1>
+                  Please confirm if you wish to <br/> delete the post
                 </AlertDialogTitle >
                 <AlertDialogDescription className='text-center'>
                   Are you sure you want to delete the post? <br/> Once deleted, it cannot be recovered.
