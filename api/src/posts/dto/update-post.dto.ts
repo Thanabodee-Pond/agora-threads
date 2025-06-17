@@ -1,4 +1,3 @@
-// File: api/src/posts/dto/update-post.dto.ts
 import { IsNotEmpty, IsString, MinLength, IsOptional } from 'class-validator';
 
 export class UpdatePostDto {
@@ -13,6 +12,5 @@ export class UpdatePostDto {
 
   @IsString()
   @IsOptional()
-  // *** การแก้ไข: ทำให้ category สามารถเป็น string หรือ null ได้ ***
-  category?: string | null; // <-- แก้ไขตรงนี้
+  category?: string | null; 
 }

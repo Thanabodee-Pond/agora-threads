@@ -1,4 +1,3 @@
-// client/components/Header.tsx
 'use client';
 
 import Link from 'next/link';
@@ -12,12 +11,10 @@ import { useState } from 'react';
 import LeftSidebar from './LeftSidebar';
 import { cn } from '@/lib/utils';
 
-// import { UserIcon as HeroUserIcon } from '@heroicons/react/24/outline'; // ไม่ได้ใช้แล้ว
-import { User as LucideUserIcon } from 'lucide-react'; // ถ้ายังต้องการใช้เป็น fallback icon สุดท้าย
+import { User as LucideUserIcon } from 'lucide-react'; 
 
 export default function Header() {
-  // ดึง userAvatarUrl จาก useAuth
-  const { isLoggedIn, username, userAvatarUrl, logout } = useAuth(); // ตรวจสอบว่า useAuth มี userAvatarUrl
+  const { isLoggedIn, username, userAvatarUrl, logout } = useAuth(); 
   const router = useRouter();
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
 
@@ -30,15 +27,13 @@ export default function Header() {
     setIsMobileSidebarOpen(prevState => !prevState);
   };
 
-  // --- [ การแก้ไขฟังก์ชัน getAvatarContent ] ---
   const getAvatarContent = () => {
-    const defaultAvatarPath = '/pond_avatar.png'; // รูปภาพ fallback หลัก
+    const defaultAvatarPath = '/pond_avatar.png'; 
 
     if (isLoggedIn && userAvatarUrl && userAvatarUrl.trim() !== '') {
-      // ถ้า Login แล้ว และมี userAvatarUrl ที่ไม่ใช่ค่าว่าง
       return (
         <Image
-          src={userAvatarUrl} // ใช้ URL Avatar ที่ได้มาจาก Backend/useAuth
+          src={userAvatarUrl} 
           alt={`${username}'s avatar`}
           width={36}
           height={36}
@@ -46,10 +41,9 @@ export default function Header() {
         />
       );
     } else if (isLoggedIn) {
-      // ถ้า Login แล้ว แต่ไม่มี userAvatarUrl (หรือเป็นค่าว่าง) ให้ใช้รูป default
       return (
         <Image
-          src={defaultAvatarPath} // ใช้รูป default ที่ระบุไว้
+          src={defaultAvatarPath} 
           alt={`${username}'s avatar`}
           width={36}
           height={36}
@@ -57,18 +51,8 @@ export default function Header() {
         />
       );
     } else {
-      // ถ้ายังไม่ได้ Login ให้แสดง Icon หรือรูป default อื่นๆ
       return (
-        // Option 1: ใช้ LucideUserIcon เป็น Icon
         <LucideUserIcon className="h-9 w-9 text-white border-2 border-white rounded-full" />
-        // Option 2: ใช้รูป default สำหรับผู้ใช้ที่ไม่ได้ล็อกอิน (ถ้ามี)
-        // <Image
-        //   src={defaultAvatarPath}
-        //   alt="Guest avatar"
-        //   width={36}
-        //   height={36}
-        //   className="rounded-full object-cover border-2 border-white"
-        // />
       );
     }
   };
@@ -76,7 +60,7 @@ export default function Header() {
 
   return (
     <>
-      <header className="bg-[#243831] border-b border-custom-grey-100 py-4 px-4 md:px-8 shadow-sm sticky top-0 z-50">
+      <header className="bg-[#243831] py-4 px-4 md:px-8 shadow-sm sticky top-0 z-50">
         <div className="flex justify-between items-center w-full">
           <Link href="/" className="text-2xl font-italic font-castoro text-white">
             a Board
@@ -85,7 +69,7 @@ export default function Header() {
           <nav className="hidden md:flex items-center space-x-4">
             {isLoggedIn ? (
               <div className="flex items-center space-x-2">
-                {getAvatarContent()} {/* เรียกใช้ฟังก์ชันที่แก้ไขแล้ว */}
+                {getAvatarContent()} 
                 <span className="text-white font-semibold font-sans hidden md:inline">
                   {username || 'Guest'}
                 </span>

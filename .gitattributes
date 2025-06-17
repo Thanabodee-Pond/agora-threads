@@ -1,12 +1,9 @@
-# ตั้งค่าให้ไฟล์ .json ใช้ LF ใน repository
 *.json text eol=lf
 
-# ตั้งค่าให้ไฟล์ .ts, .tsx, .js, .jsx ใช้ LF ใน repository
 *.ts text eol=lf
 *.tsx text eol=lf
 *.js text eol=lf
 *.jsx text eol=lf
 
-# สำหรับไฟล์ที่ควรจะเป็น binary และ Git ไม่ควรไปยุ่งกับ Line Ending
 *.png binary
 *.jpg binary

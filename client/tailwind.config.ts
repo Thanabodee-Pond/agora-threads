@@ -21,7 +21,6 @@ const config: Config = {
         'custom-error': '#EF4444',
         'custom-success': '#22C55E',
 
-        // Shadcn UI default colors
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
         ring: "hsl(var(--ring))",
@@ -57,9 +56,9 @@ const config: Config = {
         },
       },
       fontFamily: {
-        display: ['var(--font-heading)', 'sans-serif'], // Noto_Sans_Thai
-        sans: ['var(--font-body)', 'sans-serif'], // Inter
-        castoro: ['var(--font-castoro)', 'serif'], // เพิ่ม Castoro ตรงนี้
+        display: ['var(--font-heading)', 'sans-serif'], 
+        sans: ['var(--font-body)', 'sans-serif'], 
+        castoro: ['var(--font-castoro)', 'serif'], 
       },
       keyframes: {
         "accordion-down": {

@@ -1,11 +1,10 @@
-// client/src/app/page.tsx
 'use client';
 
 import Header from '@/components/Header';
 import PostCard from '@/components/PostCard';
 import FloatingCreateButton from '@/components/FloatingCreateButton';
 import LeftSidebar from '@/components/LeftSidebar';
-import { useAuth } from '@/components/AuthProvider'; // <--- แก้ไขแล้ว
+import { useAuth } from '@/components/AuthProvider'; 
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import { axiosInstance } from '@/components/AuthProvider';
@@ -16,7 +15,6 @@ import { Search } from 'lucide-react';
 import Link from 'next/link';
 import { ChevronDown } from 'lucide-react';
 
-// Type Definitions (ควรจะสอดคล้องกับ Backend Response)
 interface Author {
   id: number;
   username: string;
@@ -52,17 +50,17 @@ export default function HomePage() {
   const [error, setError] = useState<string | null>(null);
   const [isCommunityDropdownOpen, setIsCommunityDropdownOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
-  const [isSearchFocused, setIsSearchFocused] = useState(false); // <--- เพิ่ม state สำหรับตรวจสอบ focus ของช่องค้นหา
+  const [isSearchFocused, setIsSearchFocused] = useState(false); 
 
   useEffect(() => {
     const handleResize = () => {
-      setIsMobile(window.innerWidth < 768); // Tailwind CSS 'md' breakpoint โดยทั่วไปคือ 768px
+      setIsMobile(window.innerWidth < 768);
     };
 
-    handleResize(); // ตั้งค่าสถานะเริ่มต้นเมื่อ component ถูก mount
-    window.addEventListener('resize', handleResize); // เพิ่ม event listener สำหรับการเปลี่ยนแปลงขนาดหน้าจอ
+    handleResize(); 
+    window.addEventListener('resize', handleResize); 
 
-    return () => window.removeEventListener('resize', handleResize); // Cleanup
+    return () => window.removeEventListener('resize', handleResize); 
   }, []);
 
   useEffect(() => {
@@ -118,33 +116,18 @@ export default function HomePage() {
         </div>
 
         <main className="flex-grow flex flex-col w-full md:w-3/5 md:ml-10 mt-3">
-          {/*
-            *** แก้ไข: Search, Community Dropdown, Create+ version mobile ไม่มี card ครอบ ***
-            ย้ายคลาส card styling ทั้งหมดไปอยู่ภายใต้ md:
-          */}
-          <div className=""> {/* <--- แก้ไขตรงนี้ */}
-            {/*
-              ปรับการแสดงผลบน Mobile เมื่อ Search ถูก Focus
-              ถ้า isMobile และ isSearchFocused, จะซ่อน Community และ Create+
-            */}
+          <div className=""> 
             <div className="flex flex-row items-center justify-between gap-4 py-4 md:gap-10">
-              {/* Search Bar */}
-              {/* เมื่อ Search Focused บน Mobile: ช่องค้นหาจะยึดพื้นที่ทั้งหมด */}
               <div className={`relative ${isMobile && isSearchFocused ? 'flex-grow' : 'flex-1 md:w-auto'}`}>
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-custom-grey-300" />
                 <Input
                   type="text"
-                  // ถ้าเป็น Mobile และ Search Focused: placeholder คือ "Search"
-                  // ถ้าเป็น Mobile และไม่ Search Focused: placeholder คือ "" (ช่องว่าง)
-                  // ถ้าเป็น Desktop: placeholder คือ "Search"
                   placeholder={isMobile ? (isSearchFocused ? "Search" : "") : "Search"}
                   className="pl-9 pr-4 py-2 border border-white rounded-md focus:ring-custom-green-300 focus:border-custom-green-300 text-custom-text placeholder-custom-grey-300 font-sans w-full"
                   onFocus={() => { if (isMobile) setIsSearchFocused(true); }}
                   onBlur={() => { if (isMobile) setIsSearchFocused(false); }}
                 />
               </div>
-
-              {/* Community Dropdown - ซ่อนเมื่อ Search ถูก focus บน mobile */}
               <div
                 className={`relative w-auto md:w-auto ${isMobile && isSearchFocused ? 'hidden' : ''}`}
                 id="community-dropdown-container"
@@ -175,7 +158,6 @@ export default function HomePage() {
                 </div>
               </div>
 
-              {/* Create Post Button - ซ่อนเมื่อ Search ถูก focus บน mobile */}
               <div className={`w-auto md:w-auto flex justify-end md:justify-start ${isMobile && isSearchFocused ? 'hidden' : ''}`}>
                 {isLoggedIn ? (
                   <Link href="/create-post" className="w-auto md:w-auto">
@@ -212,7 +194,6 @@ export default function HomePage() {
 
         {/* Right Sidebar (hidden on mobile) */}
         <div className="hidden md:block md:w-1/5 flex-shrink-0 bg-custom-white">
-          {/* เพิ่มเนื้อหาสำหรับ Sidebar ด้านขวา ถ้ามี */}
         </div>
       </div>
 

@@ -1,7 +1,6 @@
-// File: client/src/components/CommentModal.tsx
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { Textarea } from '@/components/ui/textarea'; // ใช้ Textarea แทน Input สำหรับ multi-line input
+import { Textarea } from '@/components/ui/textarea'; 
 import { Loader2 } from 'lucide-react';
 
 interface CommentModalProps {
@@ -28,7 +27,7 @@ const CommentModal: React.FC<CommentModalProps> = ({
       <div className="bg-white p-6 rounded-lg shadow-xl w-full max-w-md mx-4 transform transition-all duration-300 ease-out scale-100 opacity-100">
         <h2 className="text-xl font-bold mb-4 text-custom-text">Add your comment</h2>
         <Textarea
-          placeholder="What's on your mind..." // Placeholder จากรูป image_ccd0f1.png
+          placeholder="What's on your mind..." 
           className="w-full p-3 border border-gray-300 rounded-md mb-4 focus:ring-custom-green-300 focus:border-custom-green-300 resize-y min-h-[100px]"
           value={commentContent}
           onChange={(e) => setCommentContent(e.target.value)}
@@ -46,7 +45,7 @@ const CommentModal: React.FC<CommentModalProps> = ({
           <Button
             className="bg-[#49A569] text-white hover:bg-green-700 font-sans"
             onClick={onPostComment}
-            disabled={isLoading || commentContent.trim() === ''} // Disable ถ้ากำลังโหลด หรือเนื้อหาว่างเปล่า
+            disabled={isLoading || commentContent.trim() === ''} 
           >
             {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
             Post

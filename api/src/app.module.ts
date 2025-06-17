@@ -11,7 +11,7 @@ import { CommentsModule } from './comments/comments.module';
 
 @Module({
   imports: [
-    DrizzleModule, // <-- เพิ่ม DrizzleModule ที่นี่
+    DrizzleModule, 
     UsersModule,
     AuthModule,
     PostsModule,
@@ -19,6 +19,5 @@ import { CommentsModule } from './comments/comments.module';
   ],
   controllers: [AppController],
   providers: [AppService],
-  // ไม่ต้องมี DrizzleProvider และ exports ที่นี่แล้ว
 })
 export class AppModule {}

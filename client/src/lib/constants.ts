@@ -1,5 +1,3 @@
-// client/lib/constants.ts
-
 export const CATEGORIES = [
     'History',
     'Food',
@@ -10,4 +8,3 @@ export const CATEGORIES = [
     'Others',
   ];
   
-  // คุณสามารถเพิ่มค่าคงที่อื่นๆ ได้ที่นี่ในอนาคต

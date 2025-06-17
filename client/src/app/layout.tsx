@@ -1,14 +1,9 @@
-// client/src/app/layout.tsx
 import type { Metadata } from 'next';
 import { Inter, Noto_Sans_Thai, Castoro } from 'next/font/google';
-
 import './globals.css';
 import { Providers } from '@/components/Providers';
-
-// *** เพิ่ม: นำเข้า cn utility ***
 import { cn } from '@/lib/utils'; 
 
-// Define your fonts here
 const inter = Inter({ subsets: ['latin'], variable: '--font-body' });
 const notoSansThai = Noto_Sans_Thai({
   subsets: ['thai'],
@@ -38,7 +33,7 @@ export default function RootLayout({
           notoSansThai.variable, 
           castoro.variable
         )}
-        suppressHydrationWarning={true} // *** เพิ่มบรรทัดนี้ ***
+        suppressHydrationWarning={true} 
       >
         <Providers>
           {children}

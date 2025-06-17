@@ -1,4 +1,3 @@
-// File: api/src/comments/dto/create-comment.dto.ts
 import { IsNotEmpty, IsNumber, IsString } from 'class-validator';
 
 export class CreateCommentDto {

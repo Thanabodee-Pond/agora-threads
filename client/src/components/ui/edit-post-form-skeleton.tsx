@@ -1,4 +1,3 @@
-// File: client/src/components/ui/edit-post-form-skeleton.tsx
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 

@@ -1,5 +1,3 @@
-// File: api/src/db/schema.ts
-
 import { pgTable, serial, text, timestamp, integer, varchar } from 'drizzle-orm/pg-core';
 import { relations, InferSelectModel } from 'drizzle-orm';
 
@@ -8,7 +6,6 @@ export const users = pgTable('users', {
   id: serial('id').primaryKey(),
   username: text('username').notNull().unique(),
   avatarUrl: text('avatar_url'),
-  // ลบ password: text('password').notNull(), ออกจากตรงนี้
   createdAt: timestamp('created_at').defaultNow().notNull(),
 });
 
@@ -37,16 +34,10 @@ export const comments = pgTable('comments', {
   createdAt: timestamp('created_at').defaultNow().notNull(),
 });
 
-
-// --- [ เพิ่มส่วนนี้เพื่อสร้าง Type อัตโนมัติ ] ---
 export type User = InferSelectModel<typeof users>;
 
 export type NewUser = typeof users.$inferInsert;
 
-// ----------------------------------------------------
-
-
-// --- Relations (ความสัมพันธ์) ---
 export const usersRelations = relations(users, ({ many }) => ({
   posts: many(posts),
   comments: many(comments),

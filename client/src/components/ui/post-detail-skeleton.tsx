@@ -1,4 +1,3 @@
-// client/src/components/ui/post-detail-skeleton.tsx
 import React from 'react';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 

@@ -1,4 +1,3 @@
-// File: api/src/users/dto/create-user.dto.ts
 import { IsNotEmpty, IsString, MinLength } from 'class-validator';
 
 export class CreateUserDto {
@@ -7,8 +6,4 @@ export class CreateUserDto {
   @MinLength(3, { message: 'Username ต้องมีความยาวอย่างน้อย 3 ตัวอักษร' })
   username: string;
 
-  // ลบ @IsString()
-  // @IsNotEmpty()
-  // @MinLength(6, { message: 'Password must be at least 6 characters' })
-  // password: string; ออกจากตรงนี้
 }

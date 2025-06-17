@@ -1,11 +1,10 @@
-// client/components/ActionRow.tsx
 'use client';
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { Button } from '@/components/ui/button'; // สมมติว่าคุณมี Button component นี้อยู่แล้ว
-import { Search, ChevronDown } from 'lucide-react'; // นำเข้า Icon Search และ ChevronDown
-import { cn } from '@/lib/utils'; // สำหรับการรวมคลาส Tailwind CSS แบบมีเงื่อนไข
+import { Button } from '@/components/ui/button'; 
+import { Search, ChevronDown } from 'lucide-react'; 
+import { cn } from '@/lib/utils'; 
 
 export default function ActionRow() {
   const [isCommunityDropdownOpen, setIsCommunityDropdownOpen] = useState(false);
@@ -15,20 +14,7 @@ export default function ActionRow() {
   };
 
   return (
-    // Div หลักนี้จะทำหน้าที่เป็น Container สำหรับทั้ง Mobile และ Desktop
-    // บน Desktop (md:), มันจะถูกกำหนดให้ไม่มี padding, ไม่มีขอบโค้ง, ไม่มีเงา
-    // บน Mobile (ค่าเริ่มต้น), มันจะเป็น Card ตามที่คุณต้องการ
     <div className="bg-custom-white w-full p-4 rounded-lg shadow-sm mb-4 md:p-0 md:rounded-none md:shadow-none md:mb-0">
-      {/*
-        นี่คือ Container หลักที่เป็น Flexbox สำหรับจัดเรียงองค์ประกอบ
-        - บน Mobile (ค่าเริ่มต้น): เป็น `flex-row` (เรียงแนวนอน)
-        - บน Desktop (`md:`): ก็เป็น `flex-row` เช่นกัน (เรียงแนวนอน)
-        - `items-center`: จัดเรียงในแนวตั้งให้อยู่กึ่งกลาง
-        - `justify-between`: จัดเรียงให้กระจายออกไป (Search ซ้ายสุด, Create+ ขวาสุด, Community กลาง)
-        - `flex-wrap`: อนุญาตให้ขึ้นบรรทัดใหม่ได้ถ้าพื้นที่ไม่พอ (ดีสำหรับ Responsive)
-        - `gap-4 md:gap-10`: กำหนดระยะห่างระหว่างแต่ละองค์ประกอบ (บน Mobile คือ 4, บน Desktop คือ 10)
-        - `py-4`: กำหนด Padding ด้านบนและล่างให้สม่ำเสมอทั้ง Mobile และ Desktop
-      */}
       <div className="flex flex-row items-center justify-between flex-wrap gap-4 py-4 md:gap-10">
         {/* ส่วนของช่องค้นหา (Search Input) */}
         <div className="relative flex-grow w-full md:w-auto">
@@ -73,7 +59,7 @@ export default function ActionRow() {
           </div>
         </div>
 
-        {/* ส่วนของปุ่ม Create + */}
+        {/* ปุ่ม Create + */}
         <div className="w-full md:w-auto flex justify-end md:justify-start">
           <Link href="/create-post" className="w-full md:w-auto">
             <Button className="bg-[#49A569] text-white px-4 py-2 rounded-md hover:bg-green-900 font-sans w-full">Create +</Button>

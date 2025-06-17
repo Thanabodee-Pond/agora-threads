@@ -1,5 +1,3 @@
-// File: api/src/posts/posts.service.ts
-
 import { Inject, Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
 import { DRIZZLE_ORM_TOKEN } from '../db/drizzle.provider';
 import { db } from '../db';
@@ -30,7 +28,6 @@ export class PostsService {
   async findAll() {
     return this.drizzle.query.posts.findMany({
       orderBy: [desc(schema.posts.createdAt)],
-      // เพิ่ม 'columns' เพื่อระบุว่าต้องการคอลัมน์ใดบ้างจากตาราง posts
       columns: {
         id: true,
         title: true,
@@ -40,9 +37,9 @@ export class PostsService {
         category: true,
       },
       with: {
-        author: { columns: { username: true, avatarUrl: true } }, // <-- แก้ไข: เพิ่ม true หลัง username:
+        author: { columns: { id: true, username: true, avatarUrl: true } }, 
         comments: {
-          with: { author: { columns: { username: true, avatarUrl: true } } }, // <-- แก้ไข: เพิ่ม true หลัง username:
+          with: { author: { columns: { id: true, username: true, avatarUrl: true } } }, // <-- แก้ไข: เพิ่ม id: true
           orderBy: [desc(schema.comments.createdAt)],
         },
       },
@@ -52,7 +49,6 @@ export class PostsService {
   async findOne(id: number) {
     const post = await this.drizzle.query.posts.findFirst({
       where: eq(schema.posts.id, id),
-      // เพิ่ม 'columns' เพื่อระบุว่าต้องการคอลัมน์ใดบ้างจากตาราง posts
       columns: {
         id: true,
         title: true,
@@ -62,9 +58,9 @@ export class PostsService {
         category: true,
       },
       with: {
-        author: { columns: { username: true, avatarUrl: true } } , // <-- แก้ไข: เพิ่ม true หลัง username:
+        author: { columns: { id: true, username: true, avatarUrl: true } } , 
         comments: {
-          with: { author: { columns: { username: true, avatarUrl: true } } }, // <-- แก้ไข: เพิ่ม true หลัง username:
+          with: { author: { columns: { id: true, username: true, avatarUrl: true } } }, // <-- แก้ไข: เพิ่ม id: true
           orderBy: [desc(schema.comments.createdAt)],
         },
       },
@@ -79,7 +75,6 @@ export class PostsService {
     return this.drizzle.query.posts.findMany({
       where: eq(schema.posts.authorId, userId),
       orderBy: [desc(schema.posts.createdAt)],
-      // เพิ่ม 'columns' ที่นี่ด้วยหากคุณต้องการ category ใน my-posts ด้วย
       columns: {
         id: true,
         title: true,
@@ -89,7 +84,7 @@ export class PostsService {
         category: true,
       },
       with: {
-        author: { columns: { username: true, avatarUrl: true } }, // <-- แก้ไข: เพิ่ม true หลัง username:
+        author: { columns: { id: true, username: true, avatarUrl: true } }, 
         comments: true,
       },
     });

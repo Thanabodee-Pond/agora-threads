@@ -1,4 +1,3 @@
-// File: client/components/AuthProvider.tsx
 'use client';
 
 import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react'; // เพิ่ม useMemo
@@ -6,25 +5,20 @@ import axios from 'axios';
 import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
 import { jwtDecode } from 'jwt-decode';
-// import { useSession } from 'next-auth/react'; // ลบถ้าไม่ได้ใช้ NextAuth
 
-// 1. กำหนด Interface สำหรับข้อมูลที่ถอดรหัสได้จาก JWT (Payload)
 interface JwtPayload {
   username: string;
-  avatarUrl?: string | null; // <-- เพิ่ม | null
-  sub: number; // <-- แก้ไข: เปลี่ยนเป็น number ตาม schema.id (Backend)
+  avatarUrl?: string | null; 
+  sub: number; 
   iat: number;
   exp: number;
 }
 
-// 2. กำหนด Interface สำหรับ User Data ที่ส่งมาจาก Backend (ใน Response Body)
-// Backend ของเราส่ง { user: { id, username, createdAt, avatarUrl }, accessToken }
-// ดังนั้น user object นี้คือสิ่งที่เราจะเก็บใน AuthProvider
 interface AuthUser {
   id: number;
   username: string;
   createdAt: string;
-  avatarUrl?: string | null; // <-- เพิ่ม: avatarUrl
+  avatarUrl?: string | null; 
 }
 
 interface AuthContextType {
@@ -32,10 +26,10 @@ interface AuthContextType {
   username: string | null;
   userAvatarUrl: string | null;
   accessToken: string | null;
-  login: (token: string, userFromServer: AuthUser) => void; // <-- แก้ไข: รับ userFromServer ด้วย
+  login: (token: string, userFromServer: AuthUser) => void; 
   logout: () => void;
   isLoading: boolean;
-  user: AuthUser | null; // <-- เพิ่ม user object เต็มๆ ใน context
+  user: AuthUser | null; 
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -51,33 +45,29 @@ export const axiosInstance = axios.create({
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const router = useRouter();
-  // const { data: session, status: sessionStatus } = useSession(); // ลบ/คอมเมนต์ถ้าไม่ได้ใช้
-
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [username, setUsername] = useState<string | null>(null);
   const [userAvatarUrl, setUserAvatarUrl] = useState<string | null>(null);
   const [accessToken, setAccessToken] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [user, setUser] = useState<AuthUser | null>(null); // State สำหรับเก็บ user object เต็มๆ
+  const [user, setUser] = useState<AuthUser | null>(null); 
 
   const logout = useCallback(() => {
     setIsLoggedIn(false);
     setUsername(null);
     setUserAvatarUrl(null);
     setAccessToken(null);
-    setUser(null); // <-- ลบ user object ด้วย
+    setUser(null); 
     localStorage.removeItem('accessToken');
-    localStorage.removeItem('user'); // <-- ลบ user object ที่เก็บไว้ใน localStorage
-    // ไม่จำเป็นต้องลบ 'username' และ 'userAvatarUrl' แยกแล้วถ้าเก็บ user object เต็มๆ
+    localStorage.removeItem('user'); // 
 
-    delete axiosInstance.defaults.headers.common['Authorization']; // ลบ Header
-    router.push('/sign-in'); // Redirect
+    delete axiosInstance.defaults.headers.common['Authorization']; 
+    router.push('/'); 
   }, [router]);
 
-  // Initial check for token & user in localStorage (Runs only on client-side after mount)
   useEffect(() => {
     const token = localStorage.getItem('accessToken');
-    const storedUserJson = localStorage.getItem('user'); // <-- ดึง user object ที่เก็บไว้
+    const storedUserJson = localStorage.getItem('user'); 
 
     if (token && storedUserJson) {
       try {
@@ -90,7 +80,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         } else {
           setIsLoggedIn(true);
           setAccessToken(token);
-          // ใช้ข้อมูลจาก storedUser ที่ดึงมาจาก localStorage
           setUser(storedUser);
           setUsername(storedUser.username);
           setUserAvatarUrl(storedUser.avatarUrl || null);
@@ -102,19 +91,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         logout();
       }
     } else {
-      // ไม่มี token หรือ user ใน localStorage, ต้องแน่ใจว่า state เป็น logged out
       logout();
     }
-    setIsLoading(false); // ตั้งค่าเป็น false เมื่อตรวจสอบ Auth เสร็จสิ้นแล้ว
+    setIsLoading(false); 
   }, [logout]);
 
-  // Axios Interceptors (ตั้งค่าหลังจาก Initial Auth check เสร็จสิ้น)
   useEffect(() => {
-    if (isLoading) return; // ไม่ทำงานถ้ายังตรวจสอบ Auth ไม่เสร็จ
+    if (isLoading) return; 
 
     const requestInterceptor = axiosInstance.interceptors.request.use(
       (config) => {
-        const token = accessToken; // ใช้ accessToken จาก state
+        const token = accessToken; 
         if (token) {
           config.headers.Authorization = `Bearer ${token}`;
         }
@@ -139,10 +126,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       axiosInstance.interceptors.request.eject(requestInterceptor);
       axiosInstance.interceptors.response.eject(responseInterceptor);
     };
-  }, [logout, accessToken, isLoading]); // accessToken เป็น dependency
+  }, [logout, accessToken, isLoading]); 
 
-  // ปรับปรุงฟังก์ชัน login ให้รับ userFromServer และเก็บข้อมูลลง state/localStorage
-  const login = useCallback((token: string, userFromServer: AuthUser) => { // <-- รับ userFromServer
+  const login = useCallback((token: string, userFromServer: AuthUser) => { 
     try {
       const decodedToken: JwtPayload = jwtDecode(token);
 
@@ -154,13 +140,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       setIsLoggedIn(true);
       setAccessToken(token);
-      // ใช้ข้อมูลจาก userFromServer ที่ได้รับมาโดยตรง
       setUsername(userFromServer.username);
       setUserAvatarUrl(userFromServer.avatarUrl || null);
-      setUser(userFromServer); // <-- เก็บ user object เต็มๆ
+      setUser(userFromServer); 
 
       localStorage.setItem('accessToken', token);
-      localStorage.setItem('user', JSON.stringify(userFromServer)); // <-- เก็บ user object เต็มๆ
+      localStorage.setItem('user', JSON.stringify(userFromServer)); 
 
       axiosInstance.defaults.headers.common['Authorization'] = `Bearer ${token}`;
 
@@ -173,7 +158,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }, [logout]);
 
-  const contextValue = useMemo(() => ({ // ใช้ useMemo เพื่อป้องกันการ re-render ไม่จำเป็น
+  const contextValue = useMemo(() => ({ 
     isLoggedIn,
     username,
     userAvatarUrl,
@@ -181,11 +166,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     login,
     logout,
     isLoading,
-    user, // ส่ง user object เต็มๆ ออกไป
+    user, 
   }), [isLoggedIn, username, userAvatarUrl, accessToken, login, logout, isLoading, user]);
 
-
-  // ตรวจสอบ isLoading ก่อน Render children
   if (isLoading) {
     return (
       <div className="flex justify-center items-center min-h-screen bg-[#BBC2C0]">

@@ -1,4 +1,3 @@
-// File: api/src/comments/comments.service.ts
 import { Inject, Injectable } from '@nestjs/common';
 import { DRIZZLE_ORM_TOKEN } from '../db/drizzle.provider';
 import { db } from '../db';

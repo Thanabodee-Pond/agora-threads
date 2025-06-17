@@ -1,5 +1,3 @@
-// File: client/app/sign-in/page.tsx
-
 'use client';
 
 import { useState } from 'react';
@@ -14,7 +12,7 @@ export default function SignInPage() {
   const [username, setUsername] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
-  const { login } = useAuth(); // ดึงฟังก์ชัน login จาก useAuth
+  const { login } = useAuth(); 
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -28,20 +26,17 @@ export default function SignInPage() {
 
     try {
       const response = await axiosInstance.post('/auth/register', { username });
-      const data = response.data; // data คือ { user: {...}, accessToken: "..." }
+      const data = response.data; 
 
       console.log('Login/Register Response:', data);
 
-      // --- [ แก้ไขตรงนี้ ] ---
-      // ต้องตรวจสอบว่ามีทั้ง accessToken และ user object ก่อนเรียก login
       if (data.accessToken && data.user) {
-        login(data.accessToken, data.user); // <-- ส่ง data.user ไปให้ login function
+        login(data.accessToken, data.user); 
         toast.success('เข้าสู่ระบบสำเร็จ!');
         router.push('/');
       } else {
-        throw new Error('ไม่ได้รับ Access Token หรือ User Data'); // กรณีที่ไม่ได้ทั้งคู่
+        throw new Error('ไม่ได้รับ Access Token หรือ User Data'); 
       }
-      // -------------------------
     } catch (error: any) {
       console.error('Login/Register Error:', error);
       const errorMessage = error.response?.data?.message || error.message || 'เกิดข้อผิดพลาดบางอย่าง';
@@ -55,7 +50,7 @@ export default function SignInPage() {
     <div className="flex flex-col md:flex-row min-h-screen bg-[#243831]">
       {/* ส่วน Layout สำหรับ Mobile */}
       <div className="flex flex-col md:hidden w-full min-h-screen">
-        <div className="flex items-center justify-center bg-[#2B5F44] h-[40vh] p-4 rounded-bl-[50px] rounded-br-[50px]">
+        <div className="flex items-center justify-center bg-[#2B5F44] h-[46vh] p-4 rounded-bl-[50px] rounded-br-[50px]">
           <div className="flex flex-col items-center">
             <Image
               src="/aboard-logo.png"
@@ -69,7 +64,7 @@ export default function SignInPage() {
             </div>
           </div>
         </div>
-        <div className="flex flex-col items-center justify-center px-6 bg-[#243831] h-[60vh] flex-grow">
+        <div className="flex flex-col items-center justify-center px-6 bg-[#243831] h-[50vh] flex-grow">
           <div className="bg-none rounded-xl w-full max-w-sm">
             <h2 className="text-4xl font-bold text-left text-white mb-8">Sign in</h2>
             <form onSubmit={handleSubmit} className="space-y-4">

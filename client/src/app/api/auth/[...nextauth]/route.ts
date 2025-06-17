@@ -1,12 +1,9 @@
-// File: client/src/app/api/auth/[...nextauth]/route.ts
-
-// [แก้ไข 1] เปลี่ยน AuthOptions เป็น NextAuthOptions และ import Type ที่ต้องใช้เพิ่ม
 import NextAuth, { NextAuthOptions, Session, User } from 'next-auth';
 import { JWT } from 'next-auth/jwt';
 import CredentialsProvider from 'next-auth/providers/credentials';
 import axios from 'axios';
 
-// กำหนด type สำหรับ Backend response ให้ชัดเจน
+// type Backend response 
 interface BackendUser {
   id: string;
   username: string;
@@ -17,7 +14,6 @@ interface BackendLoginResponse {
   accessToken: string;
 }
 
-// [แก้ไข 2] ใช้ NextAuthOptions ซึ่งเป็น Type ที่ถูกต้องสำหรับ Next.js App Router
 export const authOptions: NextAuthOptions = {
   providers: [
     CredentialsProvider({
@@ -47,9 +43,9 @@ export const authOptions: NextAuthOptions = {
             };
           }
           return null;
-        } catch (e: unknown) { // [แก้ไข 3] เปลี่ยน any เป็น unknown เพื่อความปลอดภัย
+        } catch (e: unknown) { 
           let errorMessage = 'An error occurred during sign in.';
-          // ตรวจสอบชนิดของ error ก่อนใช้งาน
+          // ตรวจสอบชนิดของ error 
           if (axios.isAxiosError(e)) {
             errorMessage = e.response?.data?.message || 'Invalid credentials.';
           } else if (e instanceof Error) {
@@ -68,7 +64,6 @@ export const authOptions: NextAuthOptions = {
     strategy: 'jwt',
   },
   callbacks: {
-    // [แก้ไข 4] เพิ่ม Type ให้กับพารามิเตอร์ของ jwt callback
     async jwt({ token, user }: { token: JWT; user?: User }) {
       if (user) {
         token.id = user.id;
@@ -77,13 +72,10 @@ export const authOptions: NextAuthOptions = {
       }
       return token;
     },
-    // [แก้ไข 5] เพิ่ม Type ให้กับพารามิเตอร์ของ session callback
     async session({ session, token }: { session: Session; token: JWT }) {
-      // นำข้อมูลจาก token ไปใส่ใน session
       session.accessToken = token.accessToken;
       if (session.user) {
         session.user.id = token.id;
-        // เราได้ขยาย session.user ให้มี username แล้วในไฟล์ .d.ts
         session.user.username = token.username; 
       }
       return session;
@@ -92,6 +84,5 @@ export const authOptions: NextAuthOptions = {
   secret: process.env.NEXTAUTH_SECRET,
 };
 
-// Error "is not callable" จะหายไปหลังจากแก้ Type เป็น NextAuthOptions
 const handler = NextAuth(authOptions);
 export { handler as GET, handler as POST };

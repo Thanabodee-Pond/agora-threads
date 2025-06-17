@@ -1,5 +1,3 @@
-// src/posts/dto/create-post.dto.ts
-
 import { IsNotEmpty, IsString, MinLength, IsOptional } from 'class-validator';
 
 export class CreatePostDto {
@@ -13,9 +11,7 @@ export class CreatePostDto {
   content: string;
 
   @IsString()
-  @IsOptional() // เลือกอันนี้ เพื่อให้เป็น optional
-  // @IsNotEmpty() // ไม่ใช้แล้วถ้าเป็น optional และอนุญาต null/undefined
+  @IsOptional() 
 
-  // *** การแก้ไข: ทำให้ category สามารถเป็น string หรือ null ได้ ***
-  category?: string | null; // <-- แก้ไขตรงนี้
+  category?: string | null; 
 }

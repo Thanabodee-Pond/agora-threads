@@ -1,11 +1,9 @@
-// File: api/src/auth/auth.module.ts (หลังการแก้ไขขั้นสุดท้าย)
 import { Module } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { AuthController } from './auth.controller';
 import { UsersModule } from '../users/users.module';
 import { PassportModule } from '@nestjs/passport';
 import { JwtModule } from '@nestjs/jwt';
-// import { LocalStrategy } from './local.strategy'; // <-- ลบบรรทัดนี้ออกไป
 import { JwtStrategy } from './jwt.strategy';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 
@@ -25,7 +23,6 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
   ],
   providers: [
     AuthService,
-    // LocalStrategy, // <-- ลบบรรทัดนี้ออกไป
     JwtStrategy
   ],
   controllers: [AuthController],

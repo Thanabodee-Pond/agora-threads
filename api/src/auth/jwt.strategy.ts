@@ -12,7 +12,6 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
   private configService: ConfigService,
   private usersService: UsersService,
  ) {
-    // [แก้ไข 1/2] ตรวจสอบค่า JWT_SECRET ก่อนใช้งาน เพื่อแก้ error
     const secret = configService.get<string>('JWT_SECRET');
     if (!secret) {
       throw new Error('Fatal Error: JWT_SECRET is not defined in the environment variables');
@@ -21,12 +20,11 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
   super({
    jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
    ignoreExpiration: false,
-   secretOrKey: secret, // ใช้ secret ที่ตรวจสอบแล้ว
+   secretOrKey: secret, 
   });
  }
 
-  // [แก้ไข 2/2] แก้ไข Return Type ให้ถูกต้อง
-  async validate(payload: { sub: string; username: string }): Promise<User> { // เปลี่ยนเป็น Promise<User>
+  async validate(payload: { sub: string; username: string }): Promise<User> { 
     const userId = parseInt(payload.sub, 10);
     const user = await this.usersService.findById(userId);
 
@@ -34,7 +32,6 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       throw new UnauthorizedException('User not found or invalid token.');
     }
 
-    // ลบบรรทัดนี้ออก: const { password, ...result } = user;
-    return user; // คืน user โดยตรง (ซึ่งตอนนี้ไม่มี password แล้ว)
+    return user; 
   }
 }
