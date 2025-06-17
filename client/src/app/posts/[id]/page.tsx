@@ -14,6 +14,7 @@ import { Loader2, MessageCircle, Bookmark, ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
 import CommentSidebar from '@/components/CommentSidebar'; 
 import { useAuth, axiosInstance } from '@/components/AuthProvider' 
+import { User } from 'lucide-react';
 
 interface Author {
   id: number;
@@ -177,26 +178,38 @@ export default function PostDetailsPage() {
     return moment(dateString).fromNow();
   };
 
-  const getUserAvatar = (user: { username: string; avatarUrl?: string | null }, size: 'sm' | 'md' = 'sm') => {
-    const avatarSizeClass = size === 'sm' ? 'w-7 h-7' : 'w-10 h-10';
-   
-    if (user.avatarUrl && user.avatarUrl.trim() !== '') {
-      return (
-        <img
-          src={user.avatarUrl}
-          alt={user.username}
-          className={`${avatarSizeClass} rounded-full mr-2 object-cover border border-custom-grey-100`}
-        />
-      );
-    }
+const getUserAvatar = (user: { username: string; avatarUrl?: string | null }, size: 'sm' | 'md' = 'sm') => {
+  const sizeClass = size === 'sm' ? 'w-7 h-7' : 'w-10 h-10';
+  const iconSize = size === 'sm' ? 16 : 24;
+
+  if (user && user.username === 'pond') {
     return (
       <img
-        src="/pond_avatar2.png"
+        src="/pond_avatar2.png" 
         alt={user.username}
-        className={`${avatarSizeClass} mr-2 object-cover`}
+        className={`${sizeClass} mr-2`}
       />
     );
-  };
+  } 
+  else if (user && user.avatarUrl && user.avatarUrl.trim() !== '') {
+    return (
+      <img
+        src={user.avatarUrl}
+        alt={user.username}
+        className={`${sizeClass} rounded-full mr-2 object-cover border border-custom-grey-100`}
+      />
+    );
+  } 
+  else {
+    return (
+      <div 
+        className={`${sizeClass} rounded-full mr-2 bg-gray-200 flex items-center justify-center border border-custom-grey-100`}
+      >
+        <User size={iconSize} className="text-gray-500" />
+      </div>
+    );
+  }
+};
 
   const handlePostComment = () => {
     if (newCommentContent.trim() === '') {
@@ -230,12 +243,12 @@ return (
       </div>
 
       <div className={`flex-grow flex w-full md:ml-30
-                      ${isMobileCommentModalOpen ? 'bg-[#939494]' : 'bg-white'}`}> {/* <-- CHANGED */}
+                      ${isMobileCommentModalOpen ? 'bg-[#939494]' : 'bg-white'}`}> 
         
         <main className={`flex-grow flex flex-col p-4 md:p-8 
                            w-full
                            md:ml-15 /* Desktop: add left margin */
-                           ${isMobileCommentModalOpen ? 'bg-[#939494]' : 'bg-white'}`}> {/* <-- CHANGED */}
+                           ${isMobileCommentModalOpen ? 'bg-[#939494]' : 'bg-white'}`}> 
           <div className="mb-4">
             <Button
               variant="ghost"
@@ -318,7 +331,7 @@ return (
             )}
           </div>
           
-          <div className="space-y-4 divide-y divide-custom-grey-100 mt-4">
+          <div className="space-y-4 mt-4">
             {postData.comments.length > 0 ? (
               postData.comments
                   .sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime())

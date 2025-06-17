@@ -5,16 +5,13 @@ import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/components/AuthProvider';
 import { useRouter } from 'next/navigation';
-
-import { Menu, X } from 'lucide-react';
+import { Menu, X, User } from 'lucide-react'; 
 import { useState } from 'react';
 import LeftSidebar from './LeftSidebar';
 import { cn } from '@/lib/utils';
 
-import { User as LucideUserIcon } from 'lucide-react'; 
-
 export default function Header() {
-  const { isLoggedIn, username, userAvatarUrl, logout } = useAuth(); 
+  const { isLoggedIn, user, logout } = useAuth(); 
   const router = useRouter();
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
 
@@ -27,36 +24,41 @@ export default function Header() {
     setIsMobileSidebarOpen(prevState => !prevState);
   };
 
-  const getAvatarContent = () => {
-    const defaultAvatarPath = '/pond_avatar.png'; 
+  const getUserAvatar = (user: { username: string; avatarUrl?: string | null }, size: 'sm' | 'md' = 'sm') => {
+    const sizeClass = size === 'md' ? 'w-5 h-5' : 'w-10 h-10';
+    const iconSize = size === 'md' ? 8 : 16;
 
-    if (isLoggedIn && userAvatarUrl && userAvatarUrl.trim() !== '') {
+    // เงื่อนไขที่ 1: เป็น 'pond' 
+    if (user && user.username === 'pond') {
       return (
-        <Image
-          src={userAvatarUrl} 
-          alt={`${username}'s avatar`}
-          width={36}
-          height={36}
-          className="rounded-full object-cover border-2 border-white"
+        <img
+          src="/pond_avatar.png"
+          alt={user.username}
+          className={`${sizeClass} rounded-full mr-2 object-cover border-2 border-green-500`}
         />
       );
-    } else if (isLoggedIn) {
+    } 
+    // เงื่อนไขที่ 2: ถ้าไม่ใช่ 'pond', 
+    else if (user && user.avatarUrl && user.avatarUrl.trim() !== '') {
       return (
-        <Image
-          src={defaultAvatarPath} 
-          alt={`${username}'s avatar`}
-          width={36}
-          height={36}
-          className="rounded-full object-cover border-2 border-white"
+        <img
+          src={user.avatarUrl}
+          alt={user.username}
+          className={`${sizeClass} rounded-full mr-2`}
         />
       );
-    } else {
+    } 
+    // เงื่อนไขที่ 3: กรณีสุดท้ายสำหรับผู้ใช้คนอื่นที่ไม่มีรูป
+    else {
       return (
-        <LucideUserIcon className="h-9 w-9 text-white border-2 border-white rounded-full" />
+        <div 
+          className={`${sizeClass} rounded-full mr-2 bg-gray-200 flex items-center justify-center border border-custom-grey-100`}
+        >
+          <User size={iconSize} className="text-gray-500" />
+        </div>
       );
     }
   };
-  // ------------------------------------------
 
   return (
     <>
@@ -69,10 +71,12 @@ export default function Header() {
           <nav className="hidden md:flex items-center space-x-4">
             {isLoggedIn ? (
               <div className="flex items-center space-x-2">
-                {getAvatarContent()} 
+                {user && getUserAvatar(user, 'sm')} 
+                
                 <span className="text-white font-semibold font-sans hidden md:inline">
-                  {username || 'Guest'}
+                  {user?.username || 'Guest'}
                 </span>
+                
                 <Button
                   onClick={handleLogout}
                   className="text-white hover:bg-green-900 bg-[#49A569] font-sans"
@@ -97,6 +101,7 @@ export default function Header() {
         </div>
       </header>
 
+      {/* Mobile Sidebar Overlay and Content */}
       <div className={cn(
         "fixed inset-0 bg-black bg-opacity-50 z-40 transition-opacity md:hidden",
         isMobileSidebarOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"

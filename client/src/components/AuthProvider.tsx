@@ -1,6 +1,6 @@
 'use client';
 
-import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react'; // เพิ่ม useMemo
+import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react'; 
 import axios from 'axios';
 import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
@@ -59,8 +59,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setAccessToken(null);
     setUser(null); 
     localStorage.removeItem('accessToken');
-    localStorage.removeItem('user'); // 
-
+    localStorage.removeItem('user'); 
     delete axiosInstance.defaults.headers.common['Authorization']; 
     router.push('/'); 
   }, [router]);

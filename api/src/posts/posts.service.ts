@@ -39,7 +39,7 @@ export class PostsService {
       with: {
         author: { columns: { id: true, username: true, avatarUrl: true } }, 
         comments: {
-          with: { author: { columns: { id: true, username: true, avatarUrl: true } } }, // <-- แก้ไข: เพิ่ม id: true
+          with: { author: { columns: { id: true, username: true, avatarUrl: true } } }, 
           orderBy: [desc(schema.comments.createdAt)],
         },
       },
@@ -60,7 +60,7 @@ export class PostsService {
       with: {
         author: { columns: { id: true, username: true, avatarUrl: true } } , 
         comments: {
-          with: { author: { columns: { id: true, username: true, avatarUrl: true } } }, // <-- แก้ไข: เพิ่ม id: true
+          with: { author: { columns: { id: true, username: true, avatarUrl: true } } }, 
           orderBy: [desc(schema.comments.createdAt)],
         },
       },

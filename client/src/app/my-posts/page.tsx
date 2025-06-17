@@ -1,4 +1,3 @@
-// File: client/src/app/my-posts/page.tsx
 'use client';
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -17,14 +16,12 @@ import {
 } from '@/components/ui/alert-dialog';
 import { format } from 'date-fns';
 
-// Type Definitions
 interface Post {
   id: number;
   title: string;
   createdAt: string;
 }
 
-// ฟังก์ชันสำหรับดึงโพสต์ของฉัน
 const fetchMyPosts = async (token: string): Promise<Post[]> => {
   const { data } = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/posts/my-posts`, {
     headers: { Authorization: `Bearer ${token}` },
@@ -32,15 +29,12 @@ const fetchMyPosts = async (token: string): Promise<Post[]> => {
   return data;
 };
 
-// ฟังก์ชันสำหรับลบโพสต์
 const deletePost = async ({ postId, token }: { postId: number; token: string }) => {
-  // --- [โค้ดส่วนที่แก้ไข] ---
-  const url = `${process.env.NEXT_PUBLIC_API_URL}/posts/${postId}`; // URL ที่ถูกต้อง
-  console.log('API Call: Attempting to DELETE post from URL:', url); // เพิ่ม log เพื่อ debug
+  const url = `${process.env.NEXT_PUBLIC_API_URL}/posts/${postId}`; 
+  console.log('API Call: Attempting to DELETE post from URL:', url); 
   await axios.delete(url, {
     headers: { Authorization: `Bearer ${token}` },
   });
-  // ------------------------------------
 };
 
 export default function MyPostsPage() {
@@ -62,14 +56,13 @@ export default function MyPostsPage() {
       queryClient.invalidateQueries({ queryKey: ['my-posts'] });
       setPostToDelete(null);
     },
-    onError: (err) => { // เปลี่ยน error เป็น err เพื่อให้เห็นรายละเอียดมากขึ้น
-      console.error("Failed to delete post:", err); // เพิ่ม log เพื่อ debug
+    onError: (err) => { 
+      console.error("Failed to delete post:", err); 
       toast.error("Failed to delete post.");
       setPostToDelete(null);
     }
   });
 
-  // เพิ่มฟังก์ชันสำหรับยืนยันการลบ
   const confirmDelete = () => {
     if (postToDelete !== null && session?.accessToken) {
       deleteMutation.mutate({ postId: postToDelete, token: session.accessToken });

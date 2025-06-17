@@ -3,7 +3,6 @@ import { JWT } from 'next-auth/jwt';
 import CredentialsProvider from 'next-auth/providers/credentials';
 import axios from 'axios';
 
-// type Backend response 
 interface BackendUser {
   id: string;
   username: string;
@@ -45,7 +44,6 @@ export const authOptions: NextAuthOptions = {
           return null;
         } catch (e: unknown) { 
           let errorMessage = 'An error occurred during sign in.';
-          // ตรวจสอบชนิดของ error 
           if (axios.isAxiosError(e)) {
             errorMessage = e.response?.data?.message || 'Invalid credentials.';
           } else if (e instanceof Error) {

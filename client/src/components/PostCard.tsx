@@ -1,5 +1,3 @@
-// File: client/components/PostCard.tsx
-
 import Link from 'next/link';
 import Image from 'next/image'; 
 import { MessageCircle, Bookmark, Edit, Trash2 } from 'lucide-react'; 
@@ -19,9 +17,8 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
   AlertDialogTrigger,
-} from "@/components/ui/alert-dialog"; // Alert Dialog Component
+} from "@/components/ui/alert-dialog"; 
 
-// กำหนด Type สำหรับ Comment 
 interface Comment {
   id: number;
   content: string;
@@ -40,7 +37,7 @@ interface PostCardProps {
     title: string;
     content: string;
     author: {
-      id: number; // 
+      id: number; 
       username: string;
       avatarUrl?: string | null; 
     };
@@ -52,7 +49,7 @@ interface PostCardProps {
 
 const getUserAvatar = (user: { username: string; avatarUrl?: string | null }, size: 'sm' | 'md' = 'sm') => {
   const avatarSizeClass = size === 'sm' ? 'w-7 h-7' : 'w-10 h-10';
-  const defaultAvatarPath = '/pond_avatar.png'; // รูปภาพ default อยู่ใน public 
+  const defaultAvatarPath = '/pond_avatar.png';
 
   if (user.avatarUrl && user.avatarUrl.trim() !== '') {
     return (
@@ -79,10 +76,8 @@ const getUserAvatar = (user: { username: string; avatarUrl?: string | null }, si
 
 export default function PostCard({ post }: PostCardProps) {
   const router = useRouter();
-  const { isLoggedIn, user, accessToken } = useAuth(); // ดึง user และ accessToken จาก useAuth
+  const { isLoggedIn, user, accessToken } = useAuth(); // ดึง accessToken จาก useAuth
   
-  // ตรวจสอบว่าเป็นเจ้าของโพสต์
-  // **สำคัญ**: user?.id ต้องเป็น number และ post.author.id ก็ต้องเป็น number
   const isAuthor = isLoggedIn && user && (post.author.id === user.id);
   // ตั้งค่า locale ของ moment เป็นภาษาไทย
   moment.locale('en'); 
@@ -93,7 +88,6 @@ export default function PostCard({ post }: PostCardProps) {
 
   const commentCount = post.comments ? post.comments.length : 0;
 
-  // การลบโพสต์
   const handleDeletePost = async () => {
     if (!accessToken) {
       toast.error("Please sign in to delete posts.");
@@ -104,7 +98,7 @@ export default function PostCard({ post }: PostCardProps) {
         headers: { Authorization: `Bearer ${accessToken}` },
       });
       toast.success("Post deleted successfully!");
-      router.push('/'); // Redirect ไปหน้าแรกหลังลบ
+      router.push('/'); 
     } catch (error: any) {
       console.error("Failed to delete post:", error);
       toast.error(`Failed to delete post: ${error.response?.data?.message || error.message}`);
@@ -120,7 +114,6 @@ export default function PostCard({ post }: PostCardProps) {
           <Link href={`/posts/${post.id}/edit`} passHref>
             <Edit className="w-5 h-5 text-[#2B5F44] cursor-pointer hover:text-green-600 transition-colors" />
           </Link>
-          {/* Alert Dialog สำหรับยืนยันการลบ */}
           <AlertDialog>
             <AlertDialogTrigger asChild>
               <Trash2 className="w- h-5 text-[#2B5F44] cursor-pointer hover:text-green-900 transition-colors" />
