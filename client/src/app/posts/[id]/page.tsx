@@ -126,8 +126,10 @@ export default function PostDetailsPage() {
       });
     },
     onError: (error) => {
-      const errorMessage = axios.isAxiosError(error) ? error.response?.data?.message : error.message;
-      console.error("Comment error:", error.response?.data || error.message);
+      console.error("Comment submission error:", error);
+      const errorMessage = axios.isAxiosError(error)
+        ? error.response?.data?.message || 'An error occurred'
+        : 'An unexpected error occurred';
       toast.error(`Failed to add comment: ${errorMessage}`);
     },
   });
