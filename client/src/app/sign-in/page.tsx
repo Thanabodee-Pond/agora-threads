@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import { useAuth, axiosInstance } from '@/components/AuthProvider';
+import axios from 'axios';
 
 export default function SignInPage() {
   const [username, setUsername] = useState('');
@@ -37,10 +38,17 @@ export default function SignInPage() {
       } else {
         throw new Error('ไม่ได้รับ Access Token หรือ User Data'); 
       }
-    } catch (error: any) {
-      console.error('Login/Register Error:', error);
-      const errorMessage = error.response?.data?.message || error.message || 'เกิดข้อผิดพลาดบางอย่าง';
-      toast.error(`เข้าสู่ระบบไม่สำเร็จ: ${errorMessage}`);
+    } catch (error) {
+        console.error('Login/Register Error:', error);
+        let errorMessage = 'เกิดข้อผิดพลาดบางอย่าง';
+        if (axios.isAxiosError(error)) {
+          errorMessage = error.response?.data?.message || error.message;
+        } else if (error instanceof Error) {
+          errorMessage = error.message;
+        }
+
+        toast.error(`เข้าสู่ระบบไม่สำเร็จ: ${errorMessage}`);
+
     } finally {
       setIsLoading(false);
     }

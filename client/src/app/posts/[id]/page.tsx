@@ -6,7 +6,7 @@ import axios from 'axios';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import moment from 'moment';
-
+import { getUserAvatar } from '@/lib/utils';
 import Header from '@/components/Header';
 import LeftSidebar from '@/components/LeftSidebar';
 import { Button } from '@/components/ui/button';
@@ -14,7 +14,6 @@ import { Loader2, MessageCircle, Bookmark, ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
 import CommentSidebar from '@/components/CommentSidebar'; 
 import { useAuth, axiosInstance } from '@/components/AuthProvider' 
-import { User } from 'lucide-react';
 
 interface Author {
   id: number;
@@ -177,39 +176,6 @@ export default function PostDetailsPage() {
   const formatTimeAgo = (dateString: string) => {
     return moment(dateString).fromNow();
   };
-
-const getUserAvatar = (user: { username: string; avatarUrl?: string | null }, size: 'sm' | 'md' = 'sm') => {
-  const sizeClass = size === 'sm' ? 'w-7 h-7' : 'w-10 h-10';
-  const iconSize = size === 'sm' ? 16 : 24;
-
-  if (user && user.username === 'pond') {
-    return (
-      <img
-        src="/pond_avatar2.png" 
-        alt={user.username}
-        className={`${sizeClass} mr-2`}
-      />
-    );
-  } 
-  else if (user && user.avatarUrl && user.avatarUrl.trim() !== '') {
-    return (
-      <img
-        src={user.avatarUrl}
-        alt={user.username}
-        className={`${sizeClass} rounded-full mr-2 object-cover border border-custom-grey-100`}
-      />
-    );
-  } 
-  else {
-    return (
-      <div 
-        className={`${sizeClass} rounded-full mr-2 bg-gray-200 flex items-center justify-center border border-custom-grey-100`}
-      >
-        <User size={iconSize} className="text-gray-500" />
-      </div>
-    );
-  }
-};
 
   const handlePostComment = () => {
     if (newCommentContent.trim() === '') {

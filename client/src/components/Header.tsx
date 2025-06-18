@@ -1,14 +1,14 @@
 'use client';
 
 import Link from 'next/link';
-import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/components/AuthProvider';
 import { useRouter } from 'next/navigation';
-import { Menu, X, User } from 'lucide-react'; 
+import { Menu, X } from 'lucide-react'; 
 import { useState } from 'react';
 import LeftSidebar from './LeftSidebar';
 import { cn } from '@/lib/utils';
+import { getUserAvatar } from '@/lib/utils';
 
 export default function Header() {
   const { isLoggedIn, user, logout } = useAuth(); 
@@ -22,42 +22,6 @@ export default function Header() {
 
   const toggleMobileSidebar = () => {
     setIsMobileSidebarOpen(prevState => !prevState);
-  };
-
-  const getUserAvatar = (user: { username: string; avatarUrl?: string | null }, size: 'sm' | 'md' = 'sm') => {
-    const sizeClass = size === 'md' ? 'w-5 h-5' : 'w-10 h-10';
-    const iconSize = size === 'md' ? 8 : 16;
-
-    // เงื่อนไขที่ 1: เป็น 'pond' 
-    if (user && user.username === 'pond') {
-      return (
-        <img
-          src="/pond_avatar.png"
-          alt={user.username}
-          className={`${sizeClass} rounded-full mr-2 object-cover border-2 border-green-500`}
-        />
-      );
-    } 
-    // เงื่อนไขที่ 2: ถ้าไม่ใช่ 'pond', 
-    else if (user && user.avatarUrl && user.avatarUrl.trim() !== '') {
-      return (
-        <img
-          src={user.avatarUrl}
-          alt={user.username}
-          className={`${sizeClass} rounded-full mr-2`}
-        />
-      );
-    } 
-    // เงื่อนไขที่ 3: กรณีสุดท้ายสำหรับผู้ใช้คนอื่นที่ไม่มีรูป
-    else {
-      return (
-        <div 
-          className={`${sizeClass} rounded-full mr-2 bg-gray-200 flex items-center justify-center border border-custom-grey-100`}
-        >
-          <User size={iconSize} className="text-gray-500" />
-        </div>
-      );
-    }
   };
 
   return (

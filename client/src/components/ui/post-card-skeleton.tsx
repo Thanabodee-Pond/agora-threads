@@ -12,6 +12,7 @@ export function PostCardSkeleton() {
         <div className="flex gap-2">
           <div className="h-9 w-9 bg-gray-200 rounded-md"></div> 
           <div className="h-9 w-9 bg-gray-200 rounded-md"></div> 
+        </div>
       </CardContent>
     </Card>
   );
