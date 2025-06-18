@@ -10,7 +10,10 @@
 
 ---
 
-## 🚀 [Live Demo](https://your-agora-threads-url.com) 🚀
+## 🚀 [Live Demo]([https://your-agora-threads-url.com]) 🚀
+
+**[➡️ DEMO (Frontend Next.js)](https://youtu.be/SONtEk43acA)**
+**[➡️ DEMO (Frontend Nestjs)](https://youtu.be/leIkWGZy5zM)**
 
 **Agora Threads** is a full-stack discussion platform inspired by Reddit, built with a modern, decoupled architecture that cleanly separates the frontend and backend. The project emphasizes **end-to-end TypeScript** for robust, maintainable code and an excellent developer experience.
 
