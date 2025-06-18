@@ -6,11 +6,12 @@
 ![Prisma](https://img.shields.io/badge/Prisma-2D3748?style=for-the-badge&logo=prisma&logoColor=white)
 ![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white)
 
-[![CI/CD Status](https://github.com/Thanabodee-Pond/agora-threads/actions/workflows/ci.yml/badge.svg)](https://github.com/Thanabodee-Pond/agora-threads/actions/workflows/ci.yml)
-
 ---
 
-## 🚀 [Live Demo](https://your-agora-threads-url.com) 🚀
+## 🚀 [Live Demo]([https://your-agora-threads-url.com]) 🚀
+
+**[➡️ DEMO (Frontend Next.js)](https://youtu.be/SONtEk43acA)**
+**[➡️ DEMO (Frontend Nestjs)](https://youtu.be/leIkWGZy5zM)**
 
 **Agora Threads** is a full-stack discussion platform inspired by Reddit, built with a modern, decoupled architecture that cleanly separates the frontend and backend. The project emphasizes **end-to-end TypeScript** for robust, maintainable code and an excellent developer experience.
 
