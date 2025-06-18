@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev --turbopack",
-    "build": "next build",
+    "build": "pnpm --filter ./client build && pnpm --filter ./server build",
     "start": "next start",
     "lint": "next lint"
   },
