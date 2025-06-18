@@ -22,10 +22,10 @@ interface Author {
 }
 
 interface Comment {
-  id: string;
+  id: number;
   content: string;
-  postId: string;
-  authorId: string;
+  postId: number;
+  authorId: number;
   createdAt: string;
   author: {
     username: string;
@@ -34,7 +34,7 @@ interface Comment {
 }
 
 interface Post {
-  id: string;
+  id: number;
   title: string;
   content: string;
   category?: string | null;
