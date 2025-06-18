@@ -2,14 +2,14 @@
   "version": 2,
   "builds": [
     {
-      "src": "server/src/main.ts",
+      "src": "server/package.json",
       "use": "@vercel/node",
       "config": {
         "includeFiles": ["../prisma/**"]
       }
     },
     {
-      "src": "client/next.config.js",
+      "src": "client/package.json",
       "use": "@vercel/next"
     }
   ],
