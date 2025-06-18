@@ -8,7 +8,7 @@ import { useAuth } from '@/components/AuthProvider';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import { axiosInstance } from '@/components/AuthProvider';
-
+import axios from 'axios'
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Search } from 'lucide-react';
@@ -68,10 +68,17 @@ export default function HomePage() {
       try {
         setLoading(true);
         const response = await axiosInstance.get<Post[]>('/posts');
-        setPosts(response.data);
-      } catch (err: any) {
-        setError(err.message);
-        toast.error(`Error fetching posts: ${err.message}`);
+        const sortedPosts = response.data.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+        setPosts(sortedPosts);
+      } catch (err) { 
+        let errorMessage = 'An unexpected error occurred.';
+        if (axios.isAxiosError(err)) {
+            errorMessage = err.response?.data?.message || err.message;
+        } else if (err instanceof Error) {
+            errorMessage = err.message;
+        }
+        setError(errorMessage);
+        toast.error(`Error fetching posts: ${errorMessage}`);
       } finally {
         setLoading(false);
       }

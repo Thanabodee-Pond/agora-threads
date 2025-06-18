@@ -17,7 +17,6 @@ import {
   DialogTrigger,
   DialogHeader,
   DialogTitle,
-  DialogDescription,
 } from "@/components/ui/dialog";
 import { EditPostForm } from '@/components/EditPostForm';
 import {

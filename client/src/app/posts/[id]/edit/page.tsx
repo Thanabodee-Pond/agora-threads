@@ -3,8 +3,6 @@
 
 import { useParams, useRouter } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
-import axios from 'axios';
-
 import Header from '@/components/Header';
 import LeftSidebar from '@/components/LeftSidebar';
 import { EditPostForm } from '@/components/EditPostForm';

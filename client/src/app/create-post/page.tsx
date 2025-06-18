@@ -11,6 +11,7 @@ import { useAuth, axiosInstance } from '@/components/AuthProvider';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ChevronDown, X as CloseIcon, Loader2 } from 'lucide-react'; 
 import LeftSidebar from '@/components/LeftSidebar';
+import axios from 'axios';
 
 export default function CreatePostPage() {
   const router = useRouter();
@@ -54,9 +55,15 @@ export default function CreatePostPage() {
       });
       toast.success("Post created successfully!");
       router.push('/');
-    } catch (err: any) {
+    } catch (err) { 
       console.error('Failed to create post:', err);
-      toast.error(`Failed to create post: ${err.response?.data?.message || err.message}`);
+      let errorMessage = 'An unexpected error occurred.';
+      if (axios.isAxiosError(err)) {
+        errorMessage = err.response?.data?.message || err.message;
+      } else if (err instanceof Error) {
+        errorMessage = err.message;
+      }
+      toast.error(`Failed to create post: ${errorMessage}`);
     } finally {
       setIsLoading(false);
     }

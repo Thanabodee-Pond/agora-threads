@@ -106,7 +106,7 @@ export default function MyPostsPage() {
             </Card>
           ))
         ) : (
-          !isLoading && <p className="text-center text-gray-600">You haven't created any posts yet.</p>
+          !isLoading && <p className="text-center text-gray-600">You haven&apos;t created any posts yet.</p>
         )}
       </div>
 
