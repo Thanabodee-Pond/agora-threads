@@ -6,8 +6,6 @@
 ![Prisma](https://img.shields.io/badge/Prisma-2D3748?style=for-the-badge&logo=prisma&logoColor=white)
 ![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white)
 
-[![CI/CD Status](https://github.com/Thanabodee-Pond/agora-threads/actions/workflows/ci.yml/badge.svg)](https://github.com/Thanabodee-Pond/agora-threads/actions/workflows/ci.yml)
-
 ---
 
 ## 🚀 [Live Demo]([https://your-agora-threads-url.com]) 🚀
