@@ -14,34 +14,7 @@ import { Button } from '@/components/ui/button';
 import { Search } from 'lucide-react';
 import Link from 'next/link';
 import { ChevronDown } from 'lucide-react';
-
-interface Author {
-  id: number;
-  username: string;
-  avatarUrl?: string;
-}
-
-interface Comment {
-  id: number;
-  content: string;
-  postId: number;
-  authorId: number;
-  createdAt: string;
-  author: {
-    username: string;
-  };
-}
-
-interface Post {
-  id: number;
-  title: string;
-  content: string;
-  authorId: number;
-  createdAt: string;
-  author: Author;
-  category?: string;
-  comments: Comment[];
-}
+import type { Post } from '@/types'; 
 
 export default function HomePage() {
   const { isLoggedIn } = useAuth();
