@@ -1,14 +1,11 @@
-import NextAuth, { NextAuthOptions, Session, User } from 'next-auth';
-import { JWT } from 'next-auth/jwt';
+import { NextAuthOptions } from 'next-auth';
 import CredentialsProvider from 'next-auth/providers/credentials';
 import axios from 'axios';
-import { authOptions } from "@/lib/auth"; 
 
 interface BackendUser {
   id: string;
   username: string;
 }
-
 interface BackendLoginResponse {
   user: BackendUser;
   accessToken: string;
@@ -20,16 +17,14 @@ export const authOptions: NextAuthOptions = {
       name: 'Credentials',
       credentials: {
         username: { label: 'Username', type: 'text' },
-        password: { label: 'Password', type: 'password' },
       },
       async authorize(credentials) {
+        if (!credentials?.username) return null;
+
         try {
           const res = await axios.post<BackendLoginResponse>(
-            `${process.env.NEXT_PUBLIC_API_URL}/auth/login`,
-            {
-              username: credentials?.username,
-              password: credentials?.password,
-            }
+            `${process.env.NEXT_PUBLIC_API_URL}/auth/register`,
+            { username: credentials.username }
           );
 
           const backendResponse = res.data;
@@ -43,14 +38,12 @@ export const authOptions: NextAuthOptions = {
             };
           }
           return null;
-        } catch (e: unknown) { 
-          let errorMessage = 'An error occurred during sign in.';
-          if (axios.isAxiosError(e)) {
-            errorMessage = e.response?.data?.message || 'Invalid credentials.';
-          } else if (e instanceof Error) {
-            errorMessage = e.message;
-          }
-          console.error("Login Error from NestJS:", errorMessage);
+        } catch (e: unknown) {
+          const errorMessage = axios.isAxiosError(e)
+            ? e.response?.data?.message || 'Invalid credentials.'
+            : 'An error occurred during sign in.';
+
+          console.error("Authorize Error:", errorMessage);
           throw new Error(errorMessage);
         }
       },
@@ -63,7 +56,7 @@ export const authOptions: NextAuthOptions = {
     strategy: 'jwt',
   },
   callbacks: {
-    async jwt({ token, user }: { token: JWT; user?: User }) {
+    async jwt({ token, user }) {
       if (user) {
         token.id = user.id;
         token.username = user.username;
@@ -71,17 +64,14 @@ export const authOptions: NextAuthOptions = {
       }
       return token;
     },
-    async session({ session, token }: { session: Session; token: JWT }) {
+    async session({ session, token }) {
       session.accessToken = token.accessToken;
       if (session.user) {
         session.user.id = token.id;
-        session.user.username = token.username; 
+        session.user.username = token.username;
       }
       return session;
     },
   },
   secret: process.env.NEXTAUTH_SECRET,
 };
-
-const handler = NextAuth(authOptions);
-export { handler as GET, handler as POST };
