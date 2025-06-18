@@ -8,16 +8,13 @@ import LeftSidebar from '@/components/LeftSidebar';
 import { EditPostForm } from '@/components/EditPostForm';
 import { EditPostFormSkeleton } from '@/components/ui/edit-post-form-skeleton';
 import { useAuth, axiosInstance } from '@/components/AuthProvider';
-
-interface Author { id: number; username: string; avatarUrl?: string | null; }
-interface Post { id: number; title: string; content: string; category: string | null; author: Author; createdAt: string; }
+import type { Post } from '@/types'; 
 
 const fetchPostById = async (id: string): Promise<Post> => { 
   if (!id) throw new Error("Post ID is required for fetching.");
   const { data } = await axiosInstance.get(`/posts/${id}`);
   return data;
 };
-
 
 export default function EditPostPage() {
   const router = useRouter();
