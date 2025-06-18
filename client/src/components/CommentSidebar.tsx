@@ -1,5 +1,6 @@
-import React from 'react';
-import { Button } from '@/components/ui/button';
+'use client'
+
+import React, { Dispatch, SetStateAction } from 'react';import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea'; 
 import { Loader2, X } from 'lucide-react'; 
 
@@ -8,7 +9,9 @@ interface CommentSidebarProps {
   onPostComment: () => void;
   isLoading: boolean;
   commentContent: string;
-  setCommentContent: (content: string) => void;
+  setCommentContent: Dispatch<SetStateAction<string>>;
+  isMobile: boolean;
+  setIsMobileCommentModalOpen: Dispatch<SetStateAction<boolean>>;
 }
 
 const CommentSidebar: React.FC<CommentSidebarProps> = ({
@@ -17,6 +20,7 @@ const CommentSidebar: React.FC<CommentSidebarProps> = ({
   isLoading,
   commentContent,
   setCommentContent,
+
 }) => {
   return (
     <>
