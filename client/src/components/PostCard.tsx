@@ -7,7 +7,6 @@ import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import axios from 'axios';
 import { useState } from 'react';
-
 import { getUserAvatar } from '@/lib/utils';
 import { useAuth, axiosInstance } from '@/components/AuthProvider';
 import { useMediaQuery } from '@/hooks/use-media-query';
@@ -30,37 +29,11 @@ import {
   AlertDialogTitle as AlertDialogTitleComponent,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-
-interface Comment {
-  id: number;
-  content: string;
-  postId: number;
-  authorId: number;
-  createdAt: string;
-  author: {
-    username: string;
-    avatarUrl?: string | null;
-  };
-}
-
-interface Post {
-  id: number;
-  title: string;
-  content: string;
-  author: {
-    id: number;
-    username: string;
-    avatarUrl?: string | null;
-  };
-  category?: string | null;
-  createdAt: string;
-  comments: Comment[];
-}
+import type { Post } from '@/types';
 
 interface PostCardProps {
   post: Post;
 }
-
 
 export default function PostCard({ post }: PostCardProps) {
   const router = useRouter();
