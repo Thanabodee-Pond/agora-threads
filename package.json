@@ -1,0 +1,7 @@
+{
+  "name": "agora-threads-monorepo",
+  "private": true,
+  "scripts": {
+    "build": "pnpm --filter ./client build && pnpm --filter ./api build"
+  }
+}
